@@ -1,13 +1,10 @@
-import { Properties } from "csstype";
-import React, { useRef } from "react";
-import { transformVars, objectToString, prepareClassNames } from "./helpers";
+import React, { useEffect, useRef } from "react";
 import {
-  StyleTuple,
-  Selectors,
-  ReturnComponentProps,
-  Options,
-  Vars,
-} from "./types";
+  expandVariablesObject,
+  objectToString,
+  prepareClassNames,
+} from "./helpers";
+import { Selectors, Options, GetClasses } from "./types";
 
 // Keeps initial server-rendered styels in memory
 // For SSR
@@ -43,109 +40,65 @@ function useStyleTag(elementId: string) {
  * For our css
  */
 function usePermanentStyle(cssString: string) {
-  const elementId = useRef(getUniqueStyleTagId());
+  const elementId = useRef(getUniqueStyleTagId()); // why is this generating a new ID each time...
   const styleTag = useStyleTag(elementId.current);
-  if (styleTag) {
-    styleTag.innerHTML = cssString;
-  } else {
-    // Add to memory for SSR
-    memory[elementId.current] = cssString;
-  }
   // No idea if this is effectual and needs to be treated as such
-  // useEffect(() => {
-  // }, [styleTag, cssString]);
+  useEffect(() => {
+    if (styleTag) {
+      styleTag.innerHTML = cssString;
+    } else {
+      // Add to memory for SSR
+      memory[elementId.current] = cssString;
+    }
+  }, [styleTag, cssString]);
 }
 
-function isStyleTuple(x: unknown): x is StyleTuple {
-  return Array.isArray(x);
-}
-
-export function useCss(args: StyleTuple): ReturnComponentProps;
-export function useCss(args: Selectors): void;
 // Depending on whether internal function return StyleTuple or Selectors
-export function useCss(args: StyleTuple | Selectors) {
+export function useCss(args: Selectors) {
   const elementId = useRef(getUniqueStyleTagId());
-  const className = useRef(getUniqueClassName()); // Possibly unused
   const styleTag = useStyleTag(elementId.current);
 
-  if (!isStyleTuple(args)) {
-    let html = ``;
-    for (const selector in args) {
-      const { 0: vars = {}, 1: css = {} } = args[selector];
-      const obj = transformVars(vars);
-      html += `${selector} { ${objectToString(obj)} ${objectToString(
-        css,
-        true
-      )} }\n`;
-    }
-    if (styleTag) {
-      styleTag.innerHTML = html;
-    } else {
-      // store it in memory
-      memory[elementId.current] = html;
-    }
-    return;
-  }
-
-  const { 0: vars = {}, 1: css = {} } = args;
-  const style = transformVars(vars);
   let html = ``;
-  html += `.${className.current} { ${objectToString(css, true)}`;
+  for (const selector in args) {
+    const { vars = {}, css = {} } = args[selector];
+    const obj = expandVariablesObject(vars);
+    html += `${selector} { ${objectToString(obj)} ${objectToString(
+      css,
+      true
+    )} }\n`;
+  }
   if (styleTag) {
     styleTag.innerHTML = html;
   } else {
     // store it in memory
     memory[elementId.current] = html;
   }
-
-  return { className: className.current, style };
+  return;
 }
 
-function isOptions(x: any): x is Options {
-  return "css" in x;
-}
-
-type MakeCssArg = Properties | Options;
-type MakeCssHook = (vars?: Vars) => ReturnComponentProps;
-export function makeCss(
-  firstArg: MakeCssArg,
-  ...args: MakeCssArg[]
-): MakeCssHook;
-export function makeCss<T>(
-  firstArg: (args: T) => StyleTuple,
-  ...args: MakeCssArg[]
-): MakeCssHook;
-export function makeCss<T>(
-  firstArg: MakeCssArg | ((args: T) => StyleTuple),
-  ...args: MakeCssArg[]
-) {
-  // First we need to make a class for every option
-  let cssArgs = typeof firstArg === "function" ? args : [firstArg, ...args];
-
+export function createClassGroup<T>(...cssArgs: Options<T>[]): GetClasses<T> {
   // Prepare permanent html + classNamesObject
   let permanentHtml = ``;
   let classNamesObject = {};
   for (const cssArg of cssArgs) {
     // generate class
     const className = getUniqueClassName();
-    if (isOptions(cssArg)) {
-      permanentHtml += `.${className} { ${objectToString(cssArg.css, true)} }`;
-      classNamesObject[className] =
-        typeof cssArg.apply === "undefined" ? true : cssArg.apply;
-    } else {
-      permanentHtml += `.${className} { ${objectToString(cssArg, true)} }`;
-      classNamesObject[className] = true;
-    }
+    const { css = {}, vars = {} } = cssArg;
+    permanentHtml += `.${className} { ${objectToString(
+      expandVariablesObject(vars)
+    )} ${objectToString(css, true)} }`;
+    classNamesObject[className] =
+      typeof cssArg.apply === "undefined" ? true : cssArg.apply;
   }
 
   // get classnames function
   const classNames = prepareClassNames(classNamesObject);
 
-  return (args: Vars) => {
+  // Get Classes
+  return (args: T) => {
     // Permanent CSS styles are set first
     usePermanentStyle(permanentHtml);
-    const className = classNames(args);
-    return { className, style: transformVars(args) };
+    return classNames(args);
   };
 }
 
@@ -169,3 +122,4 @@ export function ServerStyles() {
 }
 
 export { v } from "./vars";
+export { expandVariablesObject };

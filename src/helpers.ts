@@ -17,13 +17,13 @@ function isVars(o: unknown): o is Vars {
  * Output:
  * { "--colors-red": 'red', "--colors-blue": 'blue' }
  */
-export function transformVars(vars: Vars, start = "-") {
+export function expandVariablesObject<T extends Vars>(vars: T, start = "-") {
   let o = {} as CSSProperties;
   for (const key in vars) {
     let value = vars[key];
     let fullKey = [start, key].filter(Boolean).join("-");
     if (isVars(value)) {
-      o = { ...o, ...transformVars(value, fullKey) };
+      o = { ...o, ...expandVariablesObject(value, fullKey) };
     } else {
       o[fullKey] = value;
     }
@@ -64,14 +64,15 @@ const camelToKebab = (string: String) => {
  * Returns a function which can be called with args
  * dynamically to determine which classes should be added to the component
  */
-export function prepareClassNames<T>(classNamesObject: Record<string, Apply>) {
+export function prepareClassNames<T>(
+  classNamesObject: Record<string, Apply<T>>
+) {
   return (args: T) => {
     let classes = [];
     for (const key in classNamesObject) {
       let value = classNamesObject[key];
       // If function and result true
       if (typeof value === "function" && Boolean(value(args))) {
-        console.log(value(args));
         classes.push(key);
       } else if (typeof value !== "function" && value) {
         // Or if true
