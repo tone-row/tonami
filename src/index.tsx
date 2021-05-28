@@ -1,104 +1,185 @@
-import React, { useEffect, useRef } from "react";
+import { Properties } from "csstype";
+import React, { useRef, useState } from "react";
 import {
   expandVariablesObject,
   objectToString,
   prepareClassNames,
+  prepareCssVars,
+  selectorsToString,
 } from "./helpers";
-import { Selectors, Options, GetClasses } from "./types";
+import { Selectors, Options, GetClasses, VarMap } from "./types";
 
 // Keeps initial server-rendered styels in memory
 // For SSR
 const memory: Record<string, string> = {};
 
 let uniqueId = 0;
-function getUniqueStyleTagId() {
+/**
+ * @returns A unique id for a <style/> tag
+ */
+function getUniqueId() {
   return `cssvars-${uniqueId++}`;
 }
 
-let uniqueClassname = 0;
-function getUniqueClassName() {
-  return `cssvarsclass${uniqueClassname++}`;
+let uniqueClassName = 0;
+/**
+ * @returns A unique classname for a style object
+ */
+export function getUniqueClassName() {
+  return `cssvarsclass${uniqueClassName++}`;
 }
 
-// Create Style Tag or Return if it already exists
-function useStyleTag(elementId: string) {
-  // Here is where we precreate the style tag
+let uniqueCssVariableName = 0;
+function getUniqueCssVariableName() {
+  return `--v${uniqueCssVariableName++}`;
+}
+
+/**
+ * Create Style Tag or Return if it already exists
+ *
+ * Should work inside or outside react tree
+ * @param elementId ID to be used
+ * @param css Optional intial css to write to tag/memory
+ * @returns style tag if it exists, null if not
+ */
+function getStyleTag(elementId: string, css: string) {
+  // Register the style tag if on server
   if (typeof document === "undefined") {
-    memory[elementId] = ``;
+    memory[elementId] = css;
     return null;
   }
+
   const tag = document.getElementById(elementId);
+
+  // Return tag if it arleady exists
   if (tag) return tag;
+
+  // Create it if not
   const style = document.createElement("style");
   style.setAttribute("id", elementId);
+  style.innerHTML = css; // initial string
   document.head.appendChild(style);
   return style;
 }
 
 /**
- * The idea is that this will only get called once
- * For our css
+ * Creates style once but will never create it again
+ * @returns nothing
  */
-function usePermanentStyle(cssString: string) {
-  const elementId = useRef(getUniqueStyleTagId()); // why is this generating a new ID each time...
-  const styleTag = useStyleTag(elementId.current);
-  // No idea if this is effectual and needs to be treated as such
-  useEffect(() => {
-    if (styleTag) {
-      styleTag.innerHTML = cssString;
-    } else {
-      // Add to memory for SSR
-      memory[elementId.current] = cssString;
+const createStyle = (function () {
+  let hasRun = false;
+  return function (css: string) {
+    if (!hasRun) {
+      getStyleTag(getUniqueId(), css);
     }
-  }, [styleTag, cssString]);
+  };
+})();
+
+/**
+ * Writes to a <style/> element in the head. Creates element if it doesn't exist
+ * @param id The id of the style tag to be used
+ * @param css The css string to be written
+ */
+function useStyle(id: string, css: string) {
+  const styleTag = getStyleTag(id, css);
+  const lastCss = useRef(css);
+
+  // Add to memory for SSR
+  if (!styleTag) {
+    memory[id] = css;
+  }
+
+  if (styleTag && lastCss.current !== css) {
+    styleTag.innerHTML = css;
+    lastCss.current = css;
+  }
+
+  // Remove Tag on Unmount
+  // useEffect(() => {
+  //   return () => {
+  //     debugger;
+  //     if (styleTag) styleTag.remove();
+  //   };
+  // }, []);
+
+  // No idea if this is effectual and needs to be treated as such
+  // useEffect(() => {
+  // }, [cssString]);
 }
 
-// Depending on whether internal function return StyleTuple or Selectors
-export function useCss(args: Selectors) {
-  const elementId = useRef(getUniqueStyleTagId());
-  const styleTag = useStyleTag(elementId.current);
+export function styleSelectors(args: Selectors) {
+  createStyle(selectorsToString(args));
+}
 
-  let html = ``;
-  for (const selector in args) {
-    const { vars = {}, css = {} } = args[selector];
-    const obj = expandVariablesObject(vars);
-    html += `${selector} { ${objectToString(obj)} ${objectToString(
-      css,
-      true
-    )} }\n`;
-  }
-  if (styleTag) {
-    styleTag.innerHTML = html;
-  } else {
-    // store it in memory
-    memory[elementId.current] = html;
-  }
+/**
+ * Write styles (properties and variables) inside the react tree
+ * @param args
+ * @returns
+ */
+export function useStyleSelectors(args: Selectors) {
+  const [elementId] = useState(getUniqueId());
+  useStyle(elementId, selectorsToString(args));
   return;
+}
+
+/**
+ * Takes a css object that may have functions for some properties
+ * and adds the function to the passed in varMap, removes function
+ * from the css object and replaces it with
+ *
+ * __not sure__
+ *
+ * probably just the variable string I guess
+ */
+function replaceVarFunctionsWithVars<T>(
+  css: Options<T>["css"],
+  varMap: VarMap
+) {
+  let r: Properties = {};
+  if (!css) return r;
+
+  for (const property in css) {
+    let value = css[property];
+    if (typeof value === "function") {
+      const cssVar = getUniqueCssVariableName();
+      varMap[cssVar] = value;
+      r[property] = `var(${cssVar})`;
+    } else {
+      r[property] = value;
+    }
+  }
+
+  return r;
 }
 
 export function createClassGroup<T>(...cssArgs: Options<T>[]): GetClasses<T> {
   // Prepare permanent html + classNamesObject
   let permanentHtml = ``;
-  let classNamesObject = {};
+  let classNamesMap = {}; // stores conditions for runtime processing
+  let varMap: VarMap = {}; // stores css variabls for runtime processing
+
   for (const cssArg of cssArgs) {
     // generate class
     const className = getUniqueClassName();
-    const { css = {}, vars = {} } = cssArg;
-    permanentHtml += `.${className} { ${objectToString(
-      expandVariablesObject(vars)
-    )} ${objectToString(css, true)} }`;
-    classNamesObject[className] =
-      typeof cssArg.apply === "undefined" ? true : cssArg.apply;
+    const { css: cssWithVarFunctions = {}, vars = {} } = cssArg;
+    const css = replaceVarFunctionsWithVars(cssWithVarFunctions, varMap);
+    const variablesString = objectToString(expandVariablesObject(vars));
+    const cssString = objectToString(css, true);
+    permanentHtml += `.${className} { ${variablesString} ${cssString} }`;
+    classNamesMap[className] =
+      typeof cssArg.condition === "undefined" ? true : cssArg.condition;
   }
 
   // get classnames function
-  const classNames = prepareClassNames(classNamesObject);
+  const classNames = prepareClassNames(classNamesMap);
+  const getCssVars = prepareCssVars(varMap);
+  const elementId = getUniqueId();
 
   // Get Classes
   return (args: T) => {
     // Permanent CSS styles are set first
-    usePermanentStyle(permanentHtml);
-    return classNames(args);
+    useStyle(elementId, permanentHtml.trim());
+    return { className: classNames(args), style: getCssVars(args) };
   };
 }
 

@@ -1,6 +1,6 @@
 import { Properties } from "csstype";
 import { CSSProperties } from "react";
-import { Apply, Vars } from "./types";
+import { Condition, Selectors, Vars } from "./types";
 
 function isVars(o: unknown): o is Vars {
   return typeof o === "object";
@@ -65,7 +65,7 @@ const camelToKebab = (string: String) => {
  * dynamically to determine which classes should be added to the component
  */
 export function prepareClassNames<T>(
-  classNamesObject: Record<string, Apply<T>>
+  classNamesObject: Record<string, Condition<T>>
 ) {
   return (args: T) => {
     let classes = [];
@@ -81,4 +81,34 @@ export function prepareClassNames<T>(
     }
     return classes.join(" ");
   };
+}
+
+/**
+ * Returns a function which can be called with args to
+ * dynamically assign values to css variables
+ */
+export function prepareCssVars<T>(varMap: Record<string, (args: T) => string>) {
+  return (args: T) => {
+    let style = {};
+    for (const key in varMap) {
+      style[key] = varMap[key](args);
+    }
+    return style as CSSProperties;
+  };
+}
+
+/**
+ * Converts selectors to a string of styles
+ */
+export function selectorsToString(args: Selectors) {
+  let html = ``;
+  for (const selector in args) {
+    const { vars = {}, css = {} } = args[selector];
+    const obj = expandVariablesObject(vars);
+    html += `${selector} { ${objectToString(obj)} ${objectToString(
+      css,
+      true
+    )} }`;
+  }
+  return html.trim();
 }
