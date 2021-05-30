@@ -11,7 +11,7 @@ import { Selectors, Options, UseClassGroup, VarMap } from "./types";
 
 // Keeps initial server-rendered styels in memory
 // For SSR
-const memory: Record<string, string> = {};
+let memory: Record<string, string> = {};
 
 let uniqueId = 0;
 /**
@@ -213,6 +213,8 @@ export function ServerStyles() {
       </style>
     );
   }
+  // naive attempt is just to erase everything in memory
+  memory = {};
   return <>{styles}</>;
 }
 
