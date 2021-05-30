@@ -16,7 +16,7 @@ export type Options<T extends any = undefined> = {
   condition?: Condition<T>;
 };
 
-export type GetClasses<T> = (vars?: T) => {
+export type UseClassGroup<T> = (vars?: T) => {
   className: string;
   style?: CSSProperties;
 };

@@ -1,5 +1,5 @@
 import { Properties } from "csstype";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   expandVariablesObject,
   objectToString,
@@ -7,7 +7,7 @@ import {
   prepareCssVars,
   selectorsToString,
 } from "./helpers";
-import { Selectors, Options, GetClasses, VarMap } from "./types";
+import { Selectors, Options, UseClassGroup, VarMap } from "./types";
 
 // Keeps initial server-rendered styels in memory
 // For SSR
@@ -57,6 +57,7 @@ function getStyleTag(elementId: string, css: string) {
   // Create it if not
   const style = document.createElement("style");
   style.setAttribute("id", elementId);
+  style.setAttribute("data-testid", elementId);
   style.innerHTML = css; // initial string
   document.head.appendChild(style);
   return style;
@@ -94,6 +95,8 @@ function useStyle(id: string, css: string) {
     lastCss.current = css;
   }
 
+  return styleTag;
+
   // Remove Tag on Unmount
   // useEffect(() => {
   //   return () => {
@@ -118,7 +121,14 @@ export function styleSelectors(args: Selectors) {
  */
 export function useStyleSelectors(args: Selectors) {
   const [elementId] = useState(getUniqueId());
-  useStyle(elementId, selectorsToString(args));
+  const tag = useStyle(elementId, selectorsToString(args));
+
+  useEffect(() => {
+    return () => {
+      if (tag) tag.remove();
+    };
+  }, []);
+
   return;
 }
 
@@ -152,7 +162,9 @@ function replaceVarFunctionsWithVars<T>(
   return r;
 }
 
-export function createClassGroup<T>(...cssArgs: Options<T>[]): GetClasses<T> {
+export function createClassGroup<T>(...cssArgs: Options<T>[]): {
+  useClassGroup: UseClassGroup<T>;
+} {
   // Prepare permanent html + classNamesObject
   let permanentHtml = ``;
   let classNamesMap = {}; // stores conditions for runtime processing
@@ -176,11 +188,13 @@ export function createClassGroup<T>(...cssArgs: Options<T>[]): GetClasses<T> {
   const elementId = getUniqueId();
 
   // Get Classes
-  return (args: T) => {
+  const useClassGroup = (args: T) => {
     // Permanent CSS styles are set first
     useStyle(elementId, permanentHtml.trim());
     return { className: classNames(args), style: getCssVars(args) };
   };
+
+  return { useClassGroup };
 }
 
 // Borrowing this idea from styled-jsx
@@ -201,6 +215,28 @@ export function ServerStyles() {
   }
   return <>{styles}</>;
 }
+
+// type PolymorphicComponentProps<C extends ElementType> = {
+//   as?: C;
+//   children?: ReactNode;
+// };
+
+// export function createPolymorphicComponent<F extends ElementType>({
+//   defaultElement,
+// }: {
+//   defaultElement: F;
+// }) {
+//   const Component = <E extends ElementType = F>({
+//     as,
+//     ...props
+//   }: PolymorphicComponentProps<E> &
+//     Omit<ComponentPropsWithRef<E>, keyof PolymorphicComponentProps<E>>) => {
+//     let As = as || defaultElement;
+//     return <As {...props} />;
+//   };
+//   //
+//   return Component;
+// }
 
 export { v } from "./vars";
 export { expandVariablesObject };
