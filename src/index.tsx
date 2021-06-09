@@ -1,13 +1,11 @@
-import { Properties } from "csstype";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  expandVariablesObject,
-  objectToString,
+  buildCssString,
   prepareClassNames,
   prepareCssVars,
   selectorsToString,
 } from "./helpers";
-import { Selectors, Options, UseClassGroup, VarMap } from "./types";
+import { Selectors, Options, UseClassGroup, VarMap, Apply } from "./types";
 
 // Keeps initial server-rendered styels in memory
 // For SSR
@@ -17,8 +15,8 @@ let uniqueId = 0;
 /**
  * @returns A unique id for a <style/> tag
  */
-function getUniqueId() {
-  return `cssvars-${uniqueId++}`;
+export function getUniqueId() {
+  return `ta${uniqueId++}`;
 }
 
 let uniqueClassName = 0;
@@ -26,12 +24,7 @@ let uniqueClassName = 0;
  * @returns A unique classname for a style object
  */
 export function getUniqueClassName() {
-  return `cssvarsclass${uniqueClassName++}`;
-}
-
-let uniqueCssVariableName = 0;
-function getUniqueCssVariableName() {
-  return `--v${uniqueCssVariableName++}`;
+  return `ta${uniqueClassName++}`;
 }
 
 /**
@@ -96,18 +89,6 @@ function useStyle(id: string, css: string) {
   }
 
   return styleTag;
-
-  // Remove Tag on Unmount
-  // useEffect(() => {
-  //   return () => {
-  //     debugger;
-  //     if (styleTag) styleTag.remove();
-  //   };
-  // }, []);
-
-  // No idea if this is effectual and needs to be treated as such
-  // useEffect(() => {
-  // }, [cssString]);
 }
 
 export function styleSelectors(args: Selectors) {
@@ -132,69 +113,108 @@ export function useStyleSelectors(args: Selectors) {
   return;
 }
 
-/**
- * Takes a css object that may have functions for some properties
- * and adds the function to the passed in varMap, removes function
- * from the css object and replaces it with
- *
- * __not sure__
- *
- * probably just the variable string I guess
- */
-function replaceVarFunctionsWithVars<T>(
-  css: Options<T>["css"],
-  varMap: VarMap
-) {
-  let r: Properties = {};
-  if (!css) return r;
+function applyToString(apply: Apply): string {
+  if ("className" in apply) {
+    return `.${apply.className}`;
+  }
+  if (apply.attribute.length === 1) {
+    return `[${apply.attribute[0]}]`;
+  }
+  return `[${apply.attribute[0]}="${apply.attribute[1]}"]`;
+}
 
-  for (const property in css) {
-    let value = css[property];
-    if (typeof value === "function") {
-      const cssVar = getUniqueCssVariableName();
-      varMap[cssVar] = value;
-      r[property] = `var(${cssVar})`;
+export function makeClasses<T>(...styles: Options<T>[]): UseClassGroup<T> {
+  // Prepare permanent html + classNamesObject
+  let permanentHtml = ``;
+  let classNameMap = {}; // stores conditional classnames for runtime processing
+  let attributeMap = {}; // stores conditional attributes for runtime processing
+  let attributeDefaultsMap = {}; // stores what the end result of att should be if true
+  let varMap: VarMap = {}; // stores css variabls for runtime processing
+
+  const baseClass = getUniqueClassName();
+
+  // Attach base class to classnamesmap so we always return that class
+  classNameMap[baseClass] = true;
+
+  for (const conditionalStyle of styles) {
+    let apply: Apply;
+    // Check if there is a method to apply the style
+    if (conditionalStyle.apply && "attribute" in conditionalStyle.apply) {
+      apply = conditionalStyle.apply;
+
+      // Add this attribute to the default map so we now what to apply at runtime
+      attributeDefaultsMap[conditionalStyle.apply.attribute[0]] =
+        conditionalStyle.apply.attribute.length === 2
+          ? conditionalStyle.apply.attribute[1]
+          : true;
+    } else if (
+      conditionalStyle.apply &&
+      "className" in conditionalStyle.apply
+    ) {
+      apply = conditionalStyle.apply;
     } else {
-      r[property] = value;
+      apply = { className: getUniqueClassName() };
+    }
+
+    // If no method, generate class name
+    let conditionBaseSelector =
+      typeof conditionalStyle.condition === "undefined"
+        ? `.${baseClass}`
+        : `.${baseClass}${applyToString(apply)}`;
+
+    permanentHtml += buildCssString(
+      conditionalStyle.styles,
+      conditionBaseSelector,
+      varMap
+    );
+
+    if (typeof conditionalStyle.condition === "undefined") {
+      if ("className" in apply) {
+        classNameMap[apply.className] = true;
+      } else {
+        attributeMap[apply.attribute[0]] =
+          apply.attribute.length == 2 ? apply.attribute[1] : true;
+      }
+    } else {
+      if ("className" in apply) {
+        classNameMap[apply.className] = conditionalStyle.condition;
+      } else {
+        attributeMap[apply.attribute[0]] = conditionalStyle.condition;
+      }
     }
   }
 
-  return r;
-}
-
-export function createClassGroup<T>(...cssArgs: Options<T>[]): {
-  useClassGroup: UseClassGroup<T>;
-} {
-  // Prepare permanent html + classNamesObject
-  let permanentHtml = ``;
-  let classNamesMap = {}; // stores conditions for runtime processing
-  let varMap: VarMap = {}; // stores css variabls for runtime processing
-
-  for (const cssArg of cssArgs) {
-    // generate class
-    const className = getUniqueClassName();
-    const { css: cssWithVarFunctions = {}, vars = {} } = cssArg;
-    const css = replaceVarFunctionsWithVars(cssWithVarFunctions, varMap);
-    const variablesString = objectToString(expandVariablesObject(vars));
-    const cssString = objectToString(css, true);
-    permanentHtml += `.${className} { ${variablesString} ${cssString} }`;
-    classNamesMap[className] =
-      typeof cssArg.condition === "undefined" ? true : cssArg.condition;
-  }
-
-  // get classnames function
-  const classNames = prepareClassNames(classNamesMap);
+  // Runtime functions for className, style, attributes
+  const getClassNames = prepareClassNames(classNameMap);
   const getCssVars = prepareCssVars(varMap);
+  function getAttributes(props: T) {
+    let attributes: Record<string, any> = {};
+    for (const attribute in attributeMap) {
+      if (typeof attributeMap[attribute] === "function") {
+        const result = attributeMap[attribute](props);
+        if (result) {
+          attributes[attribute] = attributeDefaultsMap[attribute];
+        }
+      } else {
+        attributes[attribute] = attributeDefaultsMap[attribute];
+      }
+    }
+    return attributes;
+  }
   const elementId = getUniqueId();
 
   // Get Classes
   const useClassGroup = (args: T) => {
     // Permanent CSS styles are set first
     useStyle(elementId, permanentHtml.trim());
-    return { className: classNames(args), style: getCssVars(args) };
+    return {
+      className: getClassNames(args),
+      style: getCssVars(args),
+      ...getAttributes(args),
+    };
   };
 
-  return { useClassGroup };
+  return useClassGroup;
 }
 
 // Borrowing this idea from styled-jsx
@@ -217,28 +237,3 @@ export function ServerStyles() {
   memory = {};
   return <>{styles}</>;
 }
-
-// type PolymorphicComponentProps<C extends ElementType> = {
-//   as?: C;
-//   children?: ReactNode;
-// };
-
-// export function createPolymorphicComponent<F extends ElementType>({
-//   defaultElement,
-// }: {
-//   defaultElement: F;
-// }) {
-//   const Component = <E extends ElementType = F>({
-//     as,
-//     ...props
-//   }: PolymorphicComponentProps<E> &
-//     Omit<ComponentPropsWithRef<E>, keyof PolymorphicComponentProps<E>>) => {
-//     let As = as || defaultElement;
-//     return <As {...props} />;
-//   };
-//   //
-//   return Component;
-// }
-
-export { v } from "./vars";
-export { expandVariablesObject };

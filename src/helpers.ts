@@ -1,6 +1,15 @@
 import { Properties } from "csstype";
 import { CSSProperties } from "react";
-import { Condition, Selectors, Vars } from "./types";
+import {
+  Condition,
+  Selectors,
+  Vars,
+  CSS,
+  Options,
+  VarMap,
+  CSSWithFunctions,
+  PropertiesWithFunction,
+} from "./types";
 
 function isVars(o: unknown): o is Vars {
   return typeof o === "object";
@@ -17,13 +26,13 @@ function isVars(o: unknown): o is Vars {
  * Output:
  * { "--colors-red": 'red', "--colors-blue": 'blue' }
  */
-export function expandVariablesObject<T extends Vars>(vars: T, start = "-") {
+export function expandVars<T extends Vars>(vars: T, start = "-") {
   let o = {} as CSSProperties;
   for (const key in vars) {
     let value = vars[key];
     let fullKey = [start, key].filter(Boolean).join("-");
     if (isVars(value)) {
-      o = { ...o, ...expandVariablesObject(value, fullKey) };
+      o = { ...o, ...expandVars(value, fullKey) };
     } else {
       o[fullKey] = value;
     }
@@ -104,11 +113,103 @@ export function selectorsToString(args: Selectors) {
   let html = ``;
   for (const selector in args) {
     const { vars = {}, css = {} } = args[selector];
-    const obj = expandVariablesObject(vars);
+    const obj = expandVars(vars);
     html += `${selector} { ${objectToString(obj)} ${objectToString(
       css,
       true
     )} }`;
   }
   return html.trim();
+}
+
+let uniqueCssVariableName = 0;
+function getUniqueCssVariableName() {
+  return `--ta${uniqueCssVariableName++}`;
+}
+
+/**
+ * Takes a css object that may have functions for some properties
+ * and adds the function to the passed in varMap, removes function
+ * from the css object and replaces it with
+ *
+ * __not sure__
+ *
+ * probably just the variable string I guess
+ */
+export function replaceVarFunctionsWithVars<T>(
+  css: PropertiesWithFunction<T>,
+  varMap: VarMap
+) {
+  let r: Properties = {};
+  if (!css) return r;
+
+  for (const property in css) {
+    let value = css[property];
+    if (typeof value === "function") {
+      const cssVar = getUniqueCssVariableName();
+      varMap[cssVar] = value;
+      r[property] = `var(${cssVar})`;
+    } else {
+      r[property] = value;
+    }
+  }
+
+  return r;
+}
+
+export function buildCssString<T>(
+  props: CSSWithFunctions<T>,
+  baseClass: string,
+  varMap: VarMap,
+  selector = "& {}"
+): string {
+  let css = "";
+
+  let styles = "";
+  if (props.vars) {
+    // convert vars to string
+    styles += objectToString(expandVars(props.vars));
+  }
+  if (props.css) {
+    // replace functions with variables
+    const css = replaceVarFunctionsWithVars(props.css, varMap);
+
+    // convert CSS to string
+    styles += objectToString(css, true);
+  }
+
+  css += replaceSelectorWithCss(selector, baseClass, styles);
+
+  // do selectors here
+  if (props.selectors) {
+    for (const selectorString in props.selectors) {
+      css += buildCssString(
+        props.selectors[selectorString],
+        baseClass,
+        varMap,
+        selectorString
+      );
+    }
+  }
+
+  return css;
+}
+
+/**
+ * Given a string include `&` and `{}`,
+ * a base class, and a css string,
+ * return a comprehensive css string
+ *
+ * May involve recursive calls to replaceSelectors
+ */
+export function replaceSelectorWithCss(
+  selector: string,
+  baseClass: string,
+  css: string
+) {
+  if (selector.indexOf("&") < 0)
+    throw new Error(`Selector missing "&": ${selector}`);
+  if (selector.indexOf("{}") < 0)
+    throw new Error(`Selector missing "{}": ${selector}`);
+  return selector.replace("&", baseClass).replace("{}", `{ ${css} }`);
 }

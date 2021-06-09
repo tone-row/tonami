@@ -9,11 +9,16 @@ export type Styles = { vars?: Vars; css?: Properties };
 export type Selectors = { [selector: string]: Styles };
 export type ReturnComponentProps = { style: CSSProperties; className: string };
 
+export type Apply =
+  | { className: string }
+  | { attribute: [string] | [string, string] };
 export type Condition<T> = boolean | ((args: T) => any);
 export type Options<T extends any = undefined> = {
-  vars?: Vars;
-  css?: PropertiesWithFunction<T>;
+  // vars?: Vars;
+  // css?: PropertiesWithFunction<T>;
   condition?: Condition<T>;
+  apply?: Apply;
+  styles: CSSWithFunctions<T>;
 };
 
 export type UseClassGroup<T> = (vars?: T) => {
@@ -22,3 +27,24 @@ export type UseClassGroup<T> = (vars?: T) => {
 };
 
 export type VarMap = Record<string, () => string>;
+
+export type CSS =
+  | { css: CSSProperties }
+  | { css?: CSSProperties; selectors: { [selector: string]: CSS } };
+
+export type CSSWithFunctions<T> =
+  | {
+      css: PropertiesWithFunction<T>;
+      vars?: Vars;
+      selectors?: { [selector: string]: CSSWithFunctions<T> };
+    }
+  | {
+      css?: PropertiesWithFunction<T>;
+      vars: Vars;
+      selectors?: { [selector: string]: CSSWithFunctions<T> };
+    }
+  | {
+      css?: PropertiesWithFunction<T>;
+      vars?: Vars;
+      selectors: { [selector: string]: CSSWithFunctions<T> };
+    };

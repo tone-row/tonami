@@ -1,12 +1,6 @@
-import {
-  findByTestId,
-  getByTestId,
-  getByText,
-  queryByTestId,
-  render,
-} from "@testing-library/react";
+import { getByTestId, queryByTestId, render } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
-import React, { useState } from "react";
+import React from "react";
 import { useStyleSelectors } from ".";
 
 describe("usePermanentStyle", () => {
@@ -24,10 +18,10 @@ describe("useStyleSelectors", () => {
     };
     const { rerender } = render(<Test />);
 
-    expect(getByTestId(document.head, "cssvars-0")).toBeInTheDocument();
+    expect(getByTestId(document.head, "ta0")).toBeInTheDocument();
 
     rerender(<Test show={false} />);
 
-    expect(queryByTestId(document.head, "cssvars-0")).not.toBeInTheDocument();
+    expect(queryByTestId(document.head, "ta0")).not.toBeInTheDocument();
   });
 });
