@@ -26,7 +26,7 @@ export type UseClassGroup<T> = (vars?: T) => {
   style?: CSSProperties;
 };
 
-export type VarMap = Record<string, () => string>;
+export type VarMap = Record<string, (args: any) => string>;
 
 export type CSS =
   | { css: CSSProperties }

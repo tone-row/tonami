@@ -1,4 +1,4 @@
-import { v } from "./vars";
+import { v } from "../vars";
 
 describe("vars", () => {
   it("should return a string for nested objects", () => {

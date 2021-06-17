@@ -9,6 +9,7 @@ import {
   VarMap,
   CSSWithFunctions,
   PropertiesWithFunction,
+  Apply,
 } from "./types";
 
 function isVars(o: unknown): o is Vars {
@@ -51,17 +52,17 @@ export function objectToString(
   obj: CSSProperties | Properties,
   isCss: boolean = false
 ) {
-  let str = "";
+  let str: string[] = [];
   if (isCss) {
     for (const key in obj) {
-      str += `${camelToKebab(key)}: ${obj[key]};`;
+      str.push(`${camelToKebab(key)}: ${obj[key]};`);
     }
   } else {
     for (const key in obj) {
-      str += `${key}: ${obj[key]};`;
+      str.push(`${key}: ${obj[key]};`);
     }
   }
-  return str;
+  return str.join(" ");
 }
 
 // https://gist.github.com/nblackburn/875e6ff75bc8ce171c758bf75f304707
@@ -70,56 +71,22 @@ const camelToKebab = (string: String) => {
 };
 
 /**
- * Returns a function which can be called with args
- * dynamically to determine which classes should be added to the component
- */
-export function prepareClassNames<T>(
-  classNamesObject: Record<string, Condition<T>>
-) {
-  return (args: T) => {
-    let classes = [];
-    for (const key in classNamesObject) {
-      let value = classNamesObject[key];
-      // If function and result true
-      if (typeof value === "function" && Boolean(value(args))) {
-        classes.push(key);
-      } else if (typeof value !== "function" && value) {
-        // Or if true
-        classes.push(key);
-      }
-    }
-    return classes.join(" ");
-  };
-}
-
-/**
- * Returns a function which can be called with args to
- * dynamically assign values to css variables
- */
-export function prepareCssVars<T>(varMap: Record<string, (args: T) => string>) {
-  return (args: T) => {
-    let style = {};
-    for (const key in varMap) {
-      style[key] = varMap[key](args);
-    }
-    return style as CSSProperties;
-  };
-}
-
-/**
  * Converts selectors to a string of styles
  */
 export function selectorsToString(args: Selectors) {
-  let html = ``;
+  let html: string[] = [];
   for (const selector in args) {
     const { vars = {}, css = {} } = args[selector];
-    const obj = expandVars(vars);
-    html += `${selector} { ${objectToString(obj)} ${objectToString(
-      css,
-      true
-    )} }`;
+    const varsString = objectToString(expandVars(vars));
+    const cssString = objectToString(css, true);
+    if (varsString || cssString) {
+      html.push(`${selector} {`);
+      if (varsString) html.push(varsString);
+      if (cssString) html.push(cssString);
+      html.push(`}`);
+    }
   }
-  return html.trim();
+  return html.join(" ");
 }
 
 let uniqueCssVariableName = 0;
@@ -136,7 +103,7 @@ function getUniqueCssVariableName() {
  *
  * probably just the variable string I guess
  */
-export function replaceVarFunctionsWithVars<T>(
+export function replaceFunctionsWithCSSVariables<T>(
   css: PropertiesWithFunction<T>,
   varMap: VarMap
 ) {
@@ -163,36 +130,38 @@ export function buildCssString<T>(
   varMap: VarMap,
   selector = "& {}"
 ): string {
-  let css = "";
+  let css: string[] = [];
 
-  let styles = "";
+  let styles: string[] = [];
   if (props.vars) {
     // convert vars to string
-    styles += objectToString(expandVars(props.vars));
+    styles.push(objectToString(expandVars(props.vars)));
   }
   if (props.css) {
     // replace functions with variables
-    const css = replaceVarFunctionsWithVars(props.css, varMap);
+    const cssWithVars = replaceFunctionsWithCSSVariables(props.css, varMap);
 
     // convert CSS to string
-    styles += objectToString(css, true);
+    styles.push(objectToString(cssWithVars, true));
   }
 
-  css += replaceSelectorWithCss(selector, baseClass, styles);
+  css.push(replaceSelectorWithCss(selector, baseClass, styles.join(" ")));
 
   // do selectors here
   if (props.selectors) {
     for (const selectorString in props.selectors) {
-      css += buildCssString(
-        props.selectors[selectorString],
-        baseClass,
-        varMap,
-        selectorString
+      css.push(
+        buildCssString(
+          props.selectors[selectorString],
+          baseClass,
+          varMap,
+          selectorString
+        )
       );
     }
   }
 
-  return css;
+  return css.join(" ");
 }
 
 /**
@@ -212,4 +181,32 @@ export function replaceSelectorWithCss(
   if (selector.indexOf("{}") < 0)
     throw new Error(`Selector missing "{}": ${selector}`);
   return selector.replace("&", baseClass).replace("{}", `{ ${css} }`);
+}
+
+/**
+ * Remove arguments with a dollar sign
+ * Idea borrowed from https://styled-components.com/docs/api#transient-props
+ */
+export function removeUnderscoreAttributes(args: Record<string, any>): any {
+  let r = {};
+  for (const key in args) {
+    if (key[0] !== "_") {
+      r[key] = args[key];
+    }
+  }
+  return r;
+}
+
+/**
+ * Convert the Apply type ({ className: * } | { attribute: [*, ?*]}) into
+ * the correct css selector string ".*" | "[*]"
+ */
+export function applyToString(apply: Apply): string {
+  if ("className" in apply) {
+    return `.${apply.className}`;
+  }
+  if (apply.attribute.length === 1) {
+    return `[${apply.attribute[0]}]`;
+  }
+  return `[${apply.attribute[0]}="${apply.attribute[1]}"]`;
 }

@@ -1,4 +1,4 @@
-import { expandVars } from "./helpers";
+import { expandVars } from "../helpers";
 
 describe("expandVars", () => {
   test("should return an object one level deep", () => {
