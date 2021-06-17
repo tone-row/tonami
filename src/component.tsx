@@ -1,5 +1,5 @@
 import React, { ElementType, ComponentPropsWithRef } from "react";
-import { classes } from "./makeClasses";
+import { classes } from "./classes";
 import { Options } from "./types";
 
 /**
