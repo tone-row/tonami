@@ -74,7 +74,8 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
 }
 
 /**
- * Filter out props that start with starting letter
+ * Filter props with a starting letter
+ * https://styled-components.com/docs/api#transient-props
  */
 function filterStartingLetter(props?: Record<string, unknown>) {
   let validProps = {};
@@ -116,7 +117,7 @@ function cssToString(selector: string, cssObject: Properties, fill = "& {}") {
     .replace(/\{\}/gi, `{ ${objectToString(cssObject, true)} }`);
 }
 
-export function replaceFuncsWithVars<T>(css: Ruleset<T>, varsMap: VarMap) {
+function replaceFuncsWithVars<T>(css: Ruleset<T>, varsMap: VarMap) {
   let r: Properties = {};
   if (!css) return r;
 

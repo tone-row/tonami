@@ -4,7 +4,7 @@ import domElements from "./domElements";
 import { rulesets } from "./rulesets";
 import { Ruleset } from "./types";
 
-export function create<C extends ElementType>(Element: C) {
+function create<C extends ElementType>(Element: C) {
   return function createComponent<I>(...rules: Ruleset<I>[]) {
     const useRulesets = rulesets<I>(...rules);
     return (props: I & Omit<ComponentPropsWithRef<C>, keyof I>) => {

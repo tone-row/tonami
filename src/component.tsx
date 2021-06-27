@@ -1,5 +1,4 @@
 import React, { ElementType, ComponentPropsWithRef } from "react";
-import { Options } from "./types";
 
 /**
  * Polymorphic Component with "as" prop
@@ -14,7 +13,7 @@ export function PolymorphicComponent<C extends ElementType>({
   return <Component {...props} />;
 }
 
-export function createComponent<T>(...styles: Options<T>[]) {
+export function createComponent<T>() {
   return <C extends ElementType>({
     as,
     ...props
