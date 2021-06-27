@@ -1,10 +1,10 @@
 import { Properties } from "csstype";
-import { options } from "./constants";
-import { getUniqueClassName } from "./getUniqueClassName";
-import { getUniqueId } from "./getUniqueId";
-import { applyToString, objectToString, uniqueVarName } from "./helpers";
+import { options } from "./lib/constants";
+import { getUniqueClassName } from "./lib/getUniqueClassName";
+import { getUniqueId } from "./lib/getUniqueId";
+import { applyToSelector, cssToString, uniqueVarName } from "./helpers";
 import { useStyle } from "./style";
-import { ConditionsMap, Ruleset, VarMap } from "./types";
+import { ConditionsMap, Ruleset, VarMap } from "./lib/types";
 
 export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
   const elementId = getUniqueId();
@@ -28,7 +28,7 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
     conditions.set(apply, condition);
 
     // turn your apply method into a selector
-    const selector = `.${baseClass}${applyToString(apply)}`;
+    const selector = `.${baseClass}${applyToSelector(apply)}`;
 
     // copy style
     let sanitizeStyle = { ...style },
@@ -111,13 +111,7 @@ function getAtts<Interface>(
   return attributes;
 }
 
-function cssToString(selector: string, cssObject: Properties, fill = "& {}") {
-  return fill
-    .replace(/\&/gi, selector)
-    .replace(/\{\}/gi, `{ ${objectToString(cssObject, true)} }`);
-}
-
-function replaceFuncsWithVars<T>(css: Ruleset<T>, varsMap: VarMap) {
+export function replaceFuncsWithVars<T>(css: Ruleset<T>, varsMap: VarMap) {
   let r: Properties = {};
   if (!css) return r;
 

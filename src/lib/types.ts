@@ -3,10 +3,14 @@ import { Properties } from "csstype";
 type PropertiesWithFunction<T> = {
   [K in keyof Properties]: Properties[K] | ((args: T) => void);
 };
-export type Vars = Record<string, any>;
-type Styles = { vars?: Vars; css?: Properties };
-export type Selectors = { [selector: string]: Styles };
 
+type Vars = Record<string, any>;
+
+export type Selectors = { [selector: string]: Properties & Vars };
+
+/**
+ * The apply type represents what attributes should be applied to a component
+ */
 export type Apply = Record<string, any>;
 
 export type Ruleset<T> = PropertiesWithFunction<T> & {

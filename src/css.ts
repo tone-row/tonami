@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { getUniqueId } from "./getUniqueId";
+import { getUniqueId } from "./lib/getUniqueId";
 import { selectorsToString } from "./helpers";
 import { createStyle, useStyle } from "./style";
-import { Selectors } from "./types";
+import { Selectors } from "./lib/types";
 
 /**
  * Write static CSS

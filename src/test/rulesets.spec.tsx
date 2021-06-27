@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import React from "react";
-import { options } from "../constants";
-import { rulesets } from "../rulesets";
+import { options } from "../lib/constants";
+import { replaceFuncsWithVars, rulesets } from "../rulesets";
 
 describe("rulesets", () => {
   it("returns a hook which returns classnames", () => {
@@ -47,14 +47,14 @@ describe("rulesets", () => {
   });
 
   test("can apply rulesets conditionally", () => {
-    const useRulesets = rulesets<{ isOrange: boolean; isBlue: boolean }>(
+    const useRulesets = rulesets<{ _isOrange: boolean; _isBlue: boolean }>(
       {
         color: "orange",
-        condition: ({ isOrange }) => isOrange,
+        condition: ({ _isOrange }) => _isOrange,
       },
       {
         color: "blue",
-        condition: ({ isBlue }) => isBlue,
+        condition: ({ _isBlue }) => _isBlue,
       }
     );
     const Test = ({
@@ -64,7 +64,7 @@ describe("rulesets", () => {
       isOrange: boolean;
       isBlue: boolean;
     }) => {
-      const atts = useRulesets({ isBlue, isOrange });
+      const atts = useRulesets({ _isBlue: isBlue, _isOrange: isOrange });
       return <div data-testid="div" {...atts} />;
     };
     const { getByTestId, rerender } = render(
@@ -125,5 +125,11 @@ describe("rulesets", () => {
     const div = getByTestId("div");
     expect(div.getAttribute("$color")).toEqual(null);
     expect(div.getAttribute("_original_letter")).not.toEqual(null);
+  });
+});
+
+describe("replaceFuncsWithVars", () => {
+  it("should return an empty object if passed one", () => {
+    expect(replaceFuncsWithVars(false as any, {})).toEqual({});
   });
 });

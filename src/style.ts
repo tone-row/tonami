@@ -1,6 +1,6 @@
 import { useRef } from "react";
-import { getUniqueId } from "./getUniqueId";
-import { useStyleSheet } from "./StyleSheet";
+import { getUniqueId } from "./lib/getUniqueId";
+import { useStyleSheet } from "./stylesheet";
 
 /**
  * Creates static style once

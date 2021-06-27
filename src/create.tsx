@@ -1,8 +1,8 @@
 import React from "react";
 import { ComponentPropsWithRef, ElementType } from "react";
-import domElements from "./domElements";
+import domElements from "./lib/domElements";
 import { rulesets } from "./rulesets";
-import { Ruleset } from "./types";
+import { Ruleset } from "./lib/types";
 
 function create<C extends ElementType>(Element: C) {
   return function createComponent<I>(...rules: Ruleset<I>[]) {

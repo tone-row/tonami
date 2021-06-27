@@ -1,9 +1,14 @@
 import React, { ElementType, ComponentPropsWithRef } from "react";
 
+/*
+These files are just being left here to help with adding
+polymorphism to the "create" api
+*/
+
 /**
  * Polymorphic Component with "as" prop
  */
-export function PolymorphicComponent<C extends ElementType>({
+function PolymorphicComponent<C extends ElementType>({
   as,
   ...props
 }: {

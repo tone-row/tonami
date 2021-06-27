@@ -1,17 +1,30 @@
-import { expandVars } from "../helpers";
+import { applyToSelector, objectToString } from "../helpers";
 
-describe("expandVars", () => {
-  test("should return an object one level deep", () => {
-    let input: Record<string, any> = { colors: { red: "red", blue: "blue" } };
-    let result = expandVars(input);
-    expect(result).toEqual({ "--colors-red": "red", "--colors-blue": "blue" });
+describe("applyToString", () => {
+  it("should work on classnames", () => {
+    const selector = applyToSelector({ className: "test" });
+    expect(selector).toEqual(".test");
+  });
 
-    input = {
-      really: { deeply: { nested: { objects: { work: { too: "1000px" } } } } },
-    };
-    result = expandVars(input);
-    expect(result).toEqual({
-      "--really-deeply-nested-objects-work-too": "1000px",
+  it("should work on attributes", () => {
+    const selector = applyToSelector({ "aria-current": "page" });
+    expect(selector).toEqual("[aria-current=page]");
+  });
+
+  it("should work when multiple attributes present", () => {
+    const selector = applyToSelector({
+      "aria-current": "page",
+      className: "test",
     });
+    expect(selector).toEqual("[aria-current=page].test");
+  });
+});
+
+describe("objectToString", () => {
+  it("should work on css custom properties and css", () => {
+    // @ts-ignore
+    expect(objectToString({ color: "blue", "--test": 15 })).toEqual(
+      "color: blue; --test: 15;"
+    );
   });
 });
