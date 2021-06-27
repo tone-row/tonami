@@ -1,11 +1,14 @@
 import React, { ElementType, ComponentPropsWithRef } from "react";
-import { classes } from "./classes";
-import { Options } from "./types";
+
+/*
+These files are just being left here to help with adding
+polymorphism to the "create" api
+*/
 
 /**
  * Polymorphic Component with "as" prop
  */
-export function PolymorphicComponent<C extends ElementType>({
+function PolymorphicComponent<C extends ElementType>({
   as,
   ...props
 }: {
@@ -15,9 +18,7 @@ export function PolymorphicComponent<C extends ElementType>({
   return <Component {...props} />;
 }
 
-export function createComponent<T>(...styles: Options<T>[]) {
-  const useClasses = classes(...styles);
-
+export function createComponent<T>() {
   return <C extends ElementType>({
     as,
     ...props
@@ -25,7 +26,6 @@ export function createComponent<T>(...styles: Options<T>[]) {
     as?: C;
   } & T &
     Omit<ComponentPropsWithRef<C>, "as" | keyof T>) => {
-    const classes = useClasses(props as any);
-    return <PolymorphicComponent {...props} {...classes} />;
+    return <PolymorphicComponent {...props} />;
   };
 }

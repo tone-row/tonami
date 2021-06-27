@@ -1,4 +1,4 @@
-import { DEFAULT_STYLE_TAG_ID, IS_BROWSER } from "./constants";
+import { DEFAULT_STYLE_TAG_ID, IS_BROWSER } from "./lib/constants";
 
 const matchSets = /\/\* ~~~[\w\d]+~~~ \*\/\n.*$/gm;
 const matchSingleStyle = /\/\* ~~~(?<id>[\w\d]+)~~~ \*\/\n(?<style>.*)$/gm;
@@ -25,6 +25,7 @@ class StyleSheet {
       }
     }
     this.styles = styles;
+    this.tag = null;
     this.createTag();
   }
 
@@ -43,25 +44,18 @@ class StyleSheet {
 
   // Make style tag
   createTag() {
-    if (
-      IS_BROWSER &&
-      !this.tag &&
-      !document.getElementById(DEFAULT_STYLE_TAG_ID)
-    ) {
-      const style = document.createElement("style");
-      style.setAttribute("id", DEFAULT_STYLE_TAG_ID);
-      style.setAttribute("data-testid", DEFAULT_STYLE_TAG_ID);
-      document.head.appendChild(style);
-      this.tag = style;
-      return style;
-    } else if (
-      IS_BROWSER &&
-      !this.tag &&
-      document.getElementById(DEFAULT_STYLE_TAG_ID)
-    ) {
-      this.tag = document.getElementById(
-        DEFAULT_STYLE_TAG_ID
-      ) as HTMLStyleElement;
+    if (IS_BROWSER) {
+      const documentTag = document.getElementById(DEFAULT_STYLE_TAG_ID);
+      if (!this.tag && !documentTag) {
+        const style = document.createElement("style");
+        style.setAttribute("id", DEFAULT_STYLE_TAG_ID);
+        style.setAttribute("data-testid", DEFAULT_STYLE_TAG_ID);
+        document.head.appendChild(style);
+        this.tag = style;
+        return style;
+      } else if (!this.tag && documentTag) {
+        this.tag = documentTag as HTMLStyleElement;
+      }
     }
     return null;
   }
@@ -89,7 +83,7 @@ class StyleSheet {
     }
   }
 }
-const mainSheet = new StyleSheet();
+export const mainSheet = new StyleSheet();
 export function useStyleSheet() {
   return mainSheet;
 }
