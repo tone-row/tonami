@@ -1,7 +1,7 @@
 import { Properties } from "csstype";
 import { CSSProperties } from "react";
 import {
-  Condition,
+  OldCondition,
   Selectors,
   Vars,
   CSS,
@@ -9,6 +9,7 @@ import {
   VarMap,
   CSSWithFunctions,
   PropertiesWithFunction,
+  OldApply,
   Apply,
 } from "./types";
 
@@ -90,7 +91,7 @@ export function selectorsToString(args: Selectors) {
 }
 
 let uniqueCssVariableName = 0;
-function getUniqueCssVariableName() {
+export function uniqueVarName() {
   return `--ta${uniqueCssVariableName++}`;
 }
 
@@ -113,7 +114,7 @@ export function replaceFunctionsWithCSSVariables<T>(
   for (const property in css) {
     let value = css[property];
     if (typeof value === "function") {
-      const cssVar = getUniqueCssVariableName();
+      const cssVar = uniqueVarName();
       varMap[cssVar] = value;
       r[property] = `var(${cssVar})`;
     } else {
@@ -124,7 +125,7 @@ export function replaceFunctionsWithCSSVariables<T>(
   return r;
 }
 
-export function buildCssString<T>(
+export function cssToString<T>(
   props: CSSWithFunctions<T>,
   baseClass: string,
   varMap: VarMap,
@@ -151,7 +152,7 @@ export function buildCssString<T>(
   if (props.selectors) {
     for (const selectorString in props.selectors) {
       css.push(
-        buildCssString(
+        cssToString(
           props.selectors[selectorString],
           baseClass,
           varMap,
@@ -201,7 +202,7 @@ export function removeUnderscoreAttributes(args: Record<string, any>): any {
  * Convert the Apply type ({ className: * } | { attribute: [*, ?*]}) into
  * the correct css selector string ".*" | "[*]"
  */
-export function applyToString(apply: Apply): string {
+export function oldApplyToString(apply: OldApply): string {
   if ("className" in apply) {
     return `.${apply.className}`;
   }
@@ -209,4 +210,20 @@ export function applyToString(apply: Apply): string {
     return `[${apply.attribute[0]}]`;
   }
   return `[${apply.attribute[0]}="${apply.attribute[1]}"]`;
+}
+
+export function applyToString(apply: Apply): string {
+  let selector = [];
+  for (const key in apply) {
+    if (key === "className") {
+      selector.push(`.${apply.className.split(" ").join(".")}`);
+    } else {
+      if (apply[key] === true) {
+        selector.push(`[${key}]`);
+      } else {
+        selector.push(`[${key}=${apply[key]}]`);
+      }
+    }
+  }
+  return selector.join("");
 }

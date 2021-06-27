@@ -1,5 +1,4 @@
 import React, { ElementType, ComponentPropsWithRef } from "react";
-import { classes } from "./classes";
 import { Options } from "./types";
 
 /**
@@ -16,8 +15,6 @@ export function PolymorphicComponent<C extends ElementType>({
 }
 
 export function createComponent<T>(...styles: Options<T>[]) {
-  const useClasses = classes(...styles);
-
   return <C extends ElementType>({
     as,
     ...props
@@ -25,7 +22,6 @@ export function createComponent<T>(...styles: Options<T>[]) {
     as?: C;
   } & T &
     Omit<ComponentPropsWithRef<C>, "as" | keyof T>) => {
-    const classes = useClasses(props as any);
-    return <PolymorphicComponent {...props} {...classes} />;
+    return <PolymorphicComponent {...props} />;
   };
 }
