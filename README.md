@@ -12,7 +12,7 @@ Minimal CSS-in-JS library that promotes CSS best-practices and strongly-typed de
 
 > 🚨 **Warning**
 >
-> This API is still an experimental state. Until we reach 1.0.0 the API is subject to change.
+> Until we reach v1.0.0 the API still may change.
 >
 > Use at your own risk!
 
@@ -22,9 +22,11 @@ Minimal CSS-in-JS library that promotes CSS best-practices and strongly-typed de
 yarn add tonami
 ```
 
-## Usage
+## Styled
 
-The **styled** function works similarly to emotion or styled-components. However, tonami uses javascript objects instead of template literals, more like JSS.
+### Basic Usage
+
+The **styled** function works similarly to [emotion](https://github.com/emotion-js/emotion) or [styled-components](https://github.com/styled-components/styled-components). However, tonami uses javascript objects instead of template literals (more like [JSS](https://github.com/cssinjs/jss)).
 
 ```tsx
 import { styled } from "tonami";
@@ -33,18 +35,18 @@ const DaBaDeeDaBaDi = styled.div({
   color: "blue",
 });
 
-export function Hits() {
+function App() {
   return <DaBaDeeDaBaDi>I'm blue</DaBaDeeDaBaDi>;
 }
 ```
 
 [View example on Stackblitz](https://stackblitz.com/edit/react-ts-bkgefl?file=index.tsx)
 
-### Polymorphism with **as** prop
+### Polymorphism
+
+We also support polymorphism (changing the DOM element) via the `as` prop
 
 ```tsx
-import { styled } from "tonami";
-
 const Text = styled.span({
   fontFamily: "cursive",
 });
@@ -60,13 +62,13 @@ export function App() {
 }
 ```
 
+[View example on Stackblitz](https://stackblitz.com/edit/react-ts-jxvq3j?file=index.tsx)
+
 ### Dynamic Styles
 
-You can use generics to declare the props your component should accept, and then reference those props in functions.
+Use a function to dynamically set a property value. In Typescript, a generic can be passed for type-safety & intellisense.
 
 ```tsx
-import { styled } from "tonami";
-
 interface Props {
   _color: string;
 }
@@ -81,28 +83,6 @@ export function Hits() {
 ```
 
 [View example on Stackblitz](https://stackblitz.com/edit/react-ts-b5hib9?file=index.tsx)
-
-Where tonami diverges from many other CSS-in-JS solutions is that the code produced uses [custom properties](https://developer.mozilla.org/en-US/docs/Web/CSS/--*) to create dynamic styles.
-
-```html
-/* Something like... */
-<html>
-  <head>
-    <style>
-      .a {
-        color: var(--x);
-      }
-    </style>
-  </head>
-  <body>
-    <div class="a" style="--x: green;">Let's get married</div>
-  </body>
-</html>
-```
-
-The benefit of this is that React is really good at writing changes to elements within the react tree, like our `<div>`. On the other hand, in order to write changes to things outside the react tree, like the `<style>` tag in the document's head, we have to go around react and do it ourselves.
-
-Although there's nothing wrong with that approach, we must do extra work to solve a problem with javascript that the browser rendering engine is built to solve with CSS.
 
 ### Transient Props
 
