@@ -1,6 +1,6 @@
 {
   "name": "tonami",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Minimal CSS-in-JS library that promotes CSS best-practices and strongly-typed design systems.",
   "keywords": [
     "react",

@@ -24,4 +24,16 @@ describe("styled", () => {
     const div = getByTestId("div");
     expect(div.getAttribute("_c")).toBe(null);
   });
+
+  it("should accept an as prop to change the DOM element", () => {
+    const Text = styled.span();
+    const Test = () => (
+      <Text data-testid="h1" as="h1">
+        This is an h1
+      </Text>
+    );
+    const { getByTestId } = render(<Test />);
+    const h1 = getByTestId("h1");
+    expect(h1.tagName).toEqual("H1");
+  });
 });

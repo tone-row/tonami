@@ -4,11 +4,17 @@ import domElements from "./lib/domElements";
 import { rulesets } from "./rulesets";
 import { Ruleset } from "./lib/types";
 
-function styled<C extends ElementType>(Element: C) {
+function styled<C extends ElementType>(baseElement: C) {
   return function styledComponent<I>(...rules: Ruleset<I>[]) {
     const useRulesets = rulesets<I>(...rules);
-    return (props: I & Omit<ComponentPropsWithRef<C>, keyof I>) => {
+    return <D extends ElementType | undefined>(
+      props: I & { as?: D } & Omit<
+          ComponentPropsWithRef<D extends undefined ? C : D>,
+          keyof I
+        >
+    ) => {
       const atts = useRulesets(props);
+      const Element = props.as ?? baseElement;
       return <Element {...atts} />;
     };
   };
