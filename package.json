@@ -1,10 +1,10 @@
 {
   "name": "tonami",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "scripts": {
-    "build": "rm -rf dist && rollup -c",
+    "build": "rollup -c",
     "dev": "yarn build --watch",
     "test": "yarn jest"
   },

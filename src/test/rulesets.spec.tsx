@@ -94,7 +94,9 @@ describe("rulesets", () => {
   it("handles subselectors", () => {
     const useRulesets = rulesets({
       color: "blue",
-      "& h1 {}": { color: "red" },
+      selectors: {
+        "& h1 {}": { color: "red" },
+      },
     });
     const Test = () => {
       const atts = useRulesets();

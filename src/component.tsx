@@ -2,7 +2,7 @@ import React, { ElementType, ComponentPropsWithRef } from "react";
 
 /*
 These files are just being left here to help with adding
-polymorphism to the "create" api
+polymorphism to the "styled" api
 */
 
 /**
