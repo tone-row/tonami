@@ -1,6 +1,17 @@
 {
   "name": "tonami",
   "version": "0.0.10",
+  "description": "Minimal CSS-in-JS library that promotes CSS best-practices and strongly-typed design systems.",
+  "keywords": [
+    "react",
+    "css",
+    "css-in-js",
+    "goober",
+    "styled",
+    "emotion",
+    "styled-components",
+    "styling"
+  ],
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "scripts": {
