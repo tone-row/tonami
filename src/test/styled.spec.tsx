@@ -14,15 +14,15 @@ describe("styled", () => {
   });
 
   it("should not add interface props to the DOM", () => {
-    const Div = styled("div")<{ _c: string }>({ color: ({ _c }) => _c });
+    const Div = styled("div")<{ $c: string }>({ color: ({ $c }) => $c });
     const Test = () => (
-      <Div aria-busy _c="orange" data-testid="div">
+      <Div aria-busy $c="orange" data-testid="div">
         Test
       </Div>
     );
     const { getByTestId } = render(<Test />);
     const div = getByTestId("div");
-    expect(div.getAttribute("_c")).toBe(null);
+    expect(div.getAttribute("$c")).toBe(null);
   });
 
   it("should accept an as prop to change the DOM element", () => {

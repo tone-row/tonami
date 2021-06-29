@@ -54,13 +54,9 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
   }
 
   return function (props?: Interface) {
-    // Write CSS
     useStyle(elementId, css.join(" "));
-
-    // build and return element props
-    // const className = getClassNames<Interface>(conditionalClasses, props);
+    const validProps = forwardProps(props as any);
     const attributes = getAtts(conditions, varsMap, props);
-    const validProps = filterStartingLetter(props as any);
     return { ...attributes, ...validProps };
   };
 }
@@ -69,11 +65,11 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
  * Filter props with a starting letter
  * https://styled-components.com/docs/api#transient-props
  */
-function filterStartingLetter(props?: Record<string, unknown>) {
+function forwardProps(props?: Record<string, unknown>) {
   let validProps = {};
   for (const key in props) {
-    if (key[0] === options.startingLetter) continue;
-    validProps[key] = props[key];
+    if (options.shouldForwardProp(key, props[key]))
+      validProps[key] = props[key];
   }
   return validProps;
 }

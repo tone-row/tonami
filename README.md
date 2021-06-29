@@ -70,25 +70,51 @@ Use a function to dynamically set a property value. In Typescript, a generic can
 
 ```tsx
 interface Props {
-  _color: string;
+  $color: string;
 }
 
-const Al = styled.div<Props>({
-  color: ({ _color }) => _color,
+const SibylleBaier = styled.div<Props>({
+  color: ({ $color }) => $color,
+  textShadow: ({ $color }) => `2px 2px 2px ${$color}`,
 });
 
-export function Hits() {
-  return <Al _color="green">Let's get married</Al>;
+function App() {
+  return (
+    <SibylleBaier $color="green">
+      Tonight, when I got home from work. 🐈
+    </SibylleBaier>
+  );
 }
 ```
 
-[View example on Stackblitz](https://stackblitz.com/edit/react-ts-b5hib9?file=index.tsx)
+[View example on Stackblitz](https://stackblitz.com/edit/react-ts-cv7pqy?file=index.tsx)
 
 ### Transient Props
 
-You may have noticed in the earlier example that we named the prop underscore `_color` instead of just `color`. Tonami uses the starting character to identify props that should **not** be added to the DOM element.
+By default, Tonami prevents props beginning with `$` from being added to the DOM element. You can customize this by replacing the function `options.shouldForwardProp` with your own.
 
-This is a problem that all CSS-in-JS libraries that have a component factory have to deal with (see [styled-components](https://styled-components.com/docs/api#transient-props), [goober](https://github.com/cristianbote/goober#shouldforwardprop), [emotion](https://emotion.sh/docs/styled#customizing-prop-forwarding)) so we decided to make `_` the default. But you can easily change this.
+```tsx
+import { styled, options } from "tonami";
+
+// Write your own function here
+options.shouldForwardProp = (key, value) => !(key[0] === "_");
+
+interface Props {
+  _p: number;
+}
+
+const Box = styled.div<Props>({
+  padding: ({ _p }) => _p + "px",
+});
+
+function App() {
+  return <Box _p={100}>Much padding wow</Box>;
+}
+```
+
+[View example on Stackblitz](https://stackblitz.com/edit/react-ts-12d91v?file=index.tsx)
+
+In this example we prevent all props beginning with an underscore from be passed to the DOM element.
 
 <!-- prettier-ignore-start -->
 [version-badge]: https://img.shields.io/npm/v/tonami?style=flat-square
