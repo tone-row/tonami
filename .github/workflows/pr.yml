@@ -1,0 +1,13 @@
+name: PR Check
+
+on: [pull_request]
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Installing packages
+              run: yarn
+            - name: Run tests
+              run: yarn test

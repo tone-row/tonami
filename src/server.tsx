@@ -1,6 +1,6 @@
 import React from "react";
 import { DEFAULT_STYLE_TAG_ID } from "./lib/constants";
-import { useStyleSheet } from "./stylesheet";
+import { useStyleSheet } from "./sheet";
 
 export function ServerStylesheet() {
   const sheet = useStyleSheet();

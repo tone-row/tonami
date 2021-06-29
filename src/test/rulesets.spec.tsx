@@ -47,14 +47,14 @@ describe("rulesets", () => {
   });
 
   test("can apply rulesets conditionally", () => {
-    const useRulesets = rulesets<{ _isOrange: boolean; _isBlue: boolean }>(
+    const useRulesets = rulesets<{ $isOrange: boolean; $isBlue: boolean }>(
       {
         color: "orange",
-        condition: ({ _isOrange }) => _isOrange,
+        condition: ({ $isOrange }) => $isOrange,
       },
       {
         color: "blue",
-        condition: ({ _isBlue }) => _isBlue,
+        condition: ({ $isBlue }) => $isBlue,
       }
     );
     const Test = ({
@@ -64,7 +64,7 @@ describe("rulesets", () => {
       isOrange: boolean;
       isBlue: boolean;
     }) => {
-      const atts = useRulesets({ _isBlue: isBlue, _isOrange: isOrange });
+      const atts = useRulesets({ $isBlue: isBlue, $isOrange: isOrange });
       return <div data-testid="div" {...atts} />;
     };
     const { getByTestId, rerender } = render(
