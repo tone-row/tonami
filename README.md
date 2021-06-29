@@ -7,6 +7,7 @@ Minimal CSS-in-JS library that promotes CSS best-practices and strongly-typed de
 [![version][version-badge]][package]
 ![downloads per month][downloads]
 ![gzipped size][size]
+![test coverage][coverage]
 
 </div>
 
@@ -121,4 +122,5 @@ In this example we prevent all props beginning with an underscore from be passed
 [package]: https://www.npmjs.com/package/tonami
 [downloads]: https://img.shields.io/npm/dm/tonami?style=flat-square
 [size]: https://img.shields.io/bundlephobia/minzip/tonami?style=flat-square
+[coverage]: https://img.shields.io/codecov/c/github/tone-row/tonami?style=flat-square
 <!-- prettier-ignore-end -->
