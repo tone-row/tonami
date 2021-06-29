@@ -21,6 +21,7 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
     const {
       apply = { className: getUniqueClassName() },
       condition = true,
+      selectors = {},
       ...style
     } = ruleset;
 
@@ -28,47 +29,34 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
     conditions.set(apply, condition);
 
     // turn your apply method into a selector
-    const selector = `.${baseClass}${applyToSelector(apply)}`;
+    const rootSelector = `.${baseClass}${applyToSelector(apply)}`;
 
     // copy style
-    let sanitizeStyle = { ...style },
-      subSelectorCss: string[] = [];
+    let subSelectorCss: string[] = [];
 
-    // check for sub selectors
-    const subSelectors = Object.keys(style).filter(
-      (key) => key.includes("&") && key.includes("{}")
-    );
-
-    if (subSelectors.length) {
-      for (const subSelector of subSelectors) {
-        // remove style from subselectors
-        delete sanitizeStyle[subSelector];
-
+    if (Object.keys(selectors).length) {
+      for (const selector in selectors) {
         subSelectorCss.push(
           cssToString(
-            selector,
-            replaceFuncsWithVars(style[subSelector], varsMap),
-            subSelector
+            rootSelector,
+            replaceFuncsWithVars(selectors[selector], varsMap),
+            selector
           )
         );
       }
     }
     // replace css functions with variables
-    const sanitizedCss = replaceFuncsWithVars(sanitizeStyle, varsMap);
+    const sanitizedCss = replaceFuncsWithVars(style, varsMap);
 
     // add css
-    css.push(cssToString(selector, sanitizedCss));
+    css.push(cssToString(rootSelector, sanitizedCss));
     css = css.concat(subSelectorCss);
   }
 
   return function (props?: Interface) {
-    // Write CSS
     useStyle(elementId, css.join(" "));
-
-    // build and return element props
-    // const className = getClassNames<Interface>(conditionalClasses, props);
+    const validProps = forwardProps(props as any);
     const attributes = getAtts(conditions, varsMap, props);
-    const validProps = filterStartingLetter(props as any);
     return { ...attributes, ...validProps };
   };
 }
@@ -77,11 +65,11 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
  * Filter props with a starting letter
  * https://styled-components.com/docs/api#transient-props
  */
-function filterStartingLetter(props?: Record<string, unknown>) {
+function forwardProps(props?: Record<string, unknown>) {
   let validProps = {};
   for (const key in props) {
-    if (key[0] === options.startingLetter) continue;
-    validProps[key] = props[key];
+    if (options.shouldForwardProp(key, props[key]))
+      validProps[key] = props[key];
   }
   return validProps;
 }

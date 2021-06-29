@@ -94,7 +94,9 @@ describe("rulesets", () => {
   it("handles subselectors", () => {
     const useRulesets = rulesets({
       color: "blue",
-      "& h1 {}": { color: "red" },
+      selectors: {
+        "& h1 {}": { color: "red" },
+      },
     });
     const Test = () => {
       const atts = useRulesets();
@@ -111,20 +113,27 @@ describe("rulesets", () => {
     );
   });
 
-  test("can change starting letter", () => {
-    options.startingLetter = "$";
-    const useRulesets = rulesets<{ $color: string }>({
-      color: ({ $color }) => $color,
+  test("can customize shouldForwardProps", () => {
+    options.shouldForwardProp = (key: string, value: unknown) =>
+      !(key === "plz_filter_me");
+    const useRulesets = rulesets<{
+      plz_filter_me: string;
+      dont_filter_me: string;
+    }>({
+      color: ({ plz_filter_me }) => plz_filter_me,
+      fontFamily: ({ dont_filter_me }) => dont_filter_me,
     });
     const Test = () => {
-      // @ts-ignore
-      const atts = useRulesets({ $color: "green", _original_letter: "test" });
+      const atts = useRulesets({
+        plz_filter_me: "green",
+        dont_filter_me: "cursive",
+      });
       return <div data-testid="div" {...atts} />;
     };
     const { getByTestId } = render(<Test />);
     const div = getByTestId("div");
-    expect(div.getAttribute("$color")).toEqual(null);
-    expect(div.getAttribute("_original_letter")).not.toEqual(null);
+    expect(div.getAttribute("plz_filter_me")).toEqual(null);
+    expect(div.getAttribute("dont_filter_me")).not.toEqual(null);
   });
 });
 
