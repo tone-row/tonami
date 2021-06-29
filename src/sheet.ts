@@ -1,7 +1,6 @@
 import { DEFAULT_STYLE_TAG_ID, IS_BROWSER } from "./lib/constants";
 
-const matchSets = /\/\* ~~~[\w\d]+~~~ \*\/\n.*$/gm;
-const matchSingleStyle = /\/\* ~~~(?<id>[\w\d]+)~~~ \*\/\n(?<style>.*)$/gm;
+const matchSets = /\/\* ~~~(?<id>[\w\d]+)~~~ \*\/\n(?<style>.*)$/gm;
 
 class StyleSheet {
   styles: Record<string, string>;
@@ -14,12 +13,11 @@ class StyleSheet {
     if (IS_BROWSER) {
       const style = document.getElementById(DEFAULT_STYLE_TAG_ID)?.innerHTML;
       if (style) {
-        const sets = [...style.matchAll(matchSets)];
-        for (const set of sets) {
-          const setString = set[0];
-          const match = matchSingleStyle.exec(setString);
-          if (match?.groups) {
-            styles[match.groups.id] = match.groups.style;
+        let match;
+        while ((match = matchSets.exec(style)) !== null) {
+          if (match.groups) {
+            const { id, style } = match.groups;
+            styles[id] = style;
           }
         }
       }
