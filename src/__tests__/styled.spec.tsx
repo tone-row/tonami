@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "../styled";
 import "@testing-library/jest-dom";
-import { render } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 
 describe("styled", () => {
   it("styleds an element which can be mounted", () => {
@@ -16,12 +16,12 @@ describe("styled", () => {
   it("should not add interface props to the DOM", () => {
     const Div = styled("div")<{ $c: string }>({ color: ({ $c }) => $c });
     const Test = () => (
-      <Div aria-busy $c="orange" data-testid="div">
+      <Div aria-busy $c="orange" data-testid="div2">
         Test
       </Div>
     );
     const { getByTestId } = render(<Test />);
-    const div = getByTestId("div");
+    const div = getByTestId("div2");
     expect(div.getAttribute("$c")).toBe(null);
   });
 
@@ -35,5 +35,29 @@ describe("styled", () => {
     const { getByTestId } = render(<Test />);
     const h1 = getByTestId("h1");
     expect(h1.tagName).toEqual("H1");
+  });
+
+  it("retains classes and style when passed", () => {
+    const Text = styled.span<{ $weight: string }>({
+      fontWeight: ({ $weight }) => $weight,
+    });
+    const Test = () => (
+      <Text
+        data-testid="span"
+        as="div"
+        className="hello"
+        style={{ fontFamily: "sans-serif" }}
+        $weight="700"
+      >
+        The color should be red
+      </Text>
+    );
+    const { getByTestId } = render(<Test />);
+    const span = getByTestId("span");
+    expect(window.getComputedStyle(span).getPropertyValue("--ta1")).toEqual(
+      "700"
+    );
+    expect(span.classList.contains("hello")).toBe(true);
+    expect(span.style.fontFamily).toEqual("sans-serif");
   });
 });

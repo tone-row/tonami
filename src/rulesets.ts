@@ -55,9 +55,22 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
 
   return function (props?: Interface) {
     useStyle(elementId, css.join(" "));
-    const validProps = forwardProps(props as any);
-    const attributes = getAtts(conditions, varsMap, props);
-    return { ...attributes, ...validProps };
+    const {
+      className: userClassName = "",
+      style: userStyle = {},
+      ...validProps
+    } = forwardProps(props as any);
+    const {
+      className: tonamiClassName,
+      style: tonamiStyle,
+      ...attributes
+    } = getAtts(conditions, varsMap, props);
+    return {
+      ...attributes,
+      ...validProps,
+      style: { ...tonamiStyle, ...(userStyle as object) },
+      className: tonamiClassName + " " + userClassName,
+    };
   };
 }
 
@@ -66,7 +79,7 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
  * https://styled-components.com/docs/api#transient-props
  */
 function forwardProps(props?: Record<string, unknown>) {
-  let validProps = {};
+  let validProps: Record<string, unknown> = {};
   for (const key in props) {
     if (options.shouldForwardProp(key, props[key]))
       validProps[key] = props[key];
