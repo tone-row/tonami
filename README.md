@@ -23,9 +23,11 @@ Minimal CSS-in-JS library that promotes CSS best-practices and strongly-typed de
 yarn add tonami
 ```
 
-## Styled
+## API
 
-### Basic Usage
+### Styed
+
+#### Basic Usage
 
 The **styled** function works similarly to [emotion](https://github.com/emotion-js/emotion) or [styled-components](https://github.com/styled-components/styled-components). However, tonami uses javascript objects instead of template literals (more like [JSS](https://github.com/cssinjs/jss)).
 
@@ -43,7 +45,7 @@ function App() {
 
 [View example on Stackblitz](https://stackblitz.com/edit/react-ts-bkgefl?file=index.tsx)
 
-### Polymorphism
+#### Polymorphism
 
 We also support polymorphism (changing the DOM element) via the `as` prop
 
@@ -65,7 +67,7 @@ export function App() {
 
 [View example on Stackblitz](https://stackblitz.com/edit/react-ts-jxvq3j?file=index.tsx)
 
-### Dynamic Styles
+#### Dynamic Properties with CSS Variables
 
 Use a function to dynamically set a property value. In Typescript, a generic can be passed for type-safety & intellisense.
 
@@ -87,10 +89,11 @@ function App() {
   );
 }
 ```
-
 [View example on Stackblitz](https://stackblitz.com/edit/react-ts-cv7pqy?file=index.tsx)
 
-### Transient Props
+When rendered, this uses CSS Custom Properties to apply the color dynamically rather than dyanmically update the CSS at runtime.
+
+#### Transient Props
 
 By default, Tonami prevents props beginning with `$` from being added to the DOM element. You can customize this by replacing the function `options.shouldForwardProp` with your own.
 
@@ -116,6 +119,75 @@ function App() {
 [View example on Stackblitz](https://stackblitz.com/edit/react-ts-12d91v?file=index.tsx)
 
 In this example we prevent all props beginning with an underscore from be passed to the DOM element.
+
+#### Dynamic Styles
+
+So far we've only passed one argument to the styled function. This represents one [ruleset](https://developer.mozilla.org/en-US/docs/Web/CSS/Syntax#css_rulesets) for which a class is generated and applied to the DOM Element. However, you can define multiple rulesets! 🎉 The `condition` property tells tonami whether to apply the class at runtime.
+
+```tsx
+interface Props {
+  $color: string;
+  $isWacky: boolean;
+}
+
+const Text = styled.div<Props>(
+  {
+    color: ({ $color }) => $color
+  },
+  {
+    // <-- Passing a second argument/ruleset
+    fontFamily: 'cursive',
+    textShadow: '2px 2px 10px',
+    condition: props => props.$isWacky // <-- when to apply this class
+  }
+);
+
+function App() {
+  return (
+    <div>
+      <Text $color="blue">Not so wacky</Text>
+      <Text $color="orangered" $isWacky={true}>
+        Pretty wacky
+      </Text>
+    </div>
+  );
+}
+```
+
+[View example on Stackblitz](https://stackblitz.com/edit/react-ts-lm55b7?file=index.tsx)
+
+In line with the benefits of using CSS custom properties for dynamic values, generating static classes which are then toggled at runtime saves on client compute power and is ultimately faster.
+
+#### Nested Selectors
+
+In traditional CSS-in-JS libs it's important to have a way to style elements inside your root element. In tonami, you pass an object to `selectors`, and each key in your object must include `&` and `{}`. This is slightly different syntax than other libs so an example will probably illustrate better.
+
+```tsx
+interface Props {
+  $size: number;
+}
+
+const Text = styled.div<Props>({
+  fontSize: ({ $size }) => $size * 6 + 'px',
+  selectors: {
+    '&:hover {}': {
+      color: 'blue'
+    },
+    '@media(min-width: 600px) { & {} }': {
+      fontSize: ({ $size }) => $size * 8 + 'px'
+    }
+  }
+});
+
+function App() {
+  return <Text $size={5}>Large Text</Text>;
+}
+```
+
+[View Example on Stackblitz](https://stackblitz.com/edit/react-ts-dcsepx?file=index.tsx)
+
+In this example we defined a different color on hover, and also a larger font size (still based on our props) on screens wider than 600px.
+
 
 <!-- prettier-ignore-start -->
 [version-badge]: https://img.shields.io/npm/v/tonami?style=flat-square
