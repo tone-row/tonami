@@ -1,10 +1,10 @@
 import React from "react";
 import styled from "../styled";
 import "@testing-library/jest-dom";
-import { render, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 
 describe("styled", () => {
-  it("styleds an element which can be mounted", () => {
+  it("creates an element which can be mounted", () => {
     const styledDiv = styled("div");
     expect(typeof styledDiv).toBe("function");
     const Div = styledDiv({ color: "blue" });
@@ -52,12 +52,23 @@ describe("styled", () => {
         The color should be red
       </Text>
     );
-    const { getByTestId } = render(<Test />);
-    const span = getByTestId("span");
+    render(<Test />);
+    const span = screen.getByTestId("span");
     expect(window.getComputedStyle(span).getPropertyValue("--ta1")).toEqual(
       "700"
     );
     expect(span.classList.contains("hello")).toBe(true);
     expect(span.style.fontFamily).toEqual("sans-serif");
+  });
+
+  it("should compose other styled's", () => {
+    const BlueDiv = styled.div({
+      color: "blue",
+    });
+    const BigBlueDiv = styled(BlueDiv)({
+      fontSize: "100px",
+    });
+    render(<BigBlueDiv>Test</BigBlueDiv>);
+    expect(screen.getByText("Test").classList.length).toEqual(4);
   });
 });
