@@ -11,9 +11,9 @@ export function objectToString(obj: CSSProperties) {
   let str: string[] = [];
   for (const key in obj) {
     if (key.slice(0, 2) === "--") {
-      str.push(`${key}: ${obj[key]};`);
+      str.push(key + ": " + obj[key] + ";");
     } else {
-      str.push(`${camelToKebab(key)}: ${obj[key]};`);
+      str.push(camelToKebab(key) + ": " + obj[key] + ";");
     }
   }
   return str.join(" ");
@@ -37,7 +37,7 @@ export function selectorsToString(args: Selectors) {
 
 let uniqueCssVariableName = 0;
 export function uniqueVarName() {
-  return `--ta${uniqueCssVariableName++}`;
+  return "--ta" + uniqueCssVariableName++;
 }
 
 /**
@@ -47,12 +47,12 @@ export function applyToSelector(apply: Apply): string {
   let selector = [];
   for (const key in apply) {
     if (key === "className") {
-      selector.push(`.${apply.className.split(" ").join(".")}`);
+      selector.push("." + apply.className.split(" ").join("."));
     } else {
       if (apply[key] === true) {
-        selector.push(`[${key}]`);
+        selector.push("[" + key + "]");
       } else {
-        selector.push(`[${key}=${apply[key]}]`);
+        selector.push("[" + key + "=" + apply[key] + "]");
       }
     }
   }
@@ -66,5 +66,5 @@ export function cssToString(
 ) {
   return fill
     .replace(/\&/gi, selector)
-    .replace(/\{\}/gi, `{ ${objectToString(cssObject)} }`);
+    .replace(/\{\}/gi, "{ " + objectToString(cssObject) + " }");
 }

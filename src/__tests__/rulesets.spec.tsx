@@ -1,14 +1,14 @@
-import { render } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import React from "react";
 import { options } from "../lib/constants";
-import { replaceFuncsWithVars, rulesets } from "../rulesets";
+import { rulesets, replaceFuncsWithVars } from "../rulesets";
 
 describe("rulesets", () => {
   it("returns a hook which returns classnames", () => {
     const useRulesets = rulesets();
     expect(typeof useRulesets).toBe("function");
     const Test = () => {
-      const atts = useRulesets();
+      const atts = useRulesets({});
       return <div data-testid="div" {...atts} />;
     };
     const { getByTestId } = render(<Test />);
@@ -23,7 +23,7 @@ describe("rulesets", () => {
       apply: { className: customClass },
     });
     const Test = () => {
-      const atts = useRulesets();
+      const atts = useRulesets({});
       return <div data-testid="div" {...atts} />;
     };
     const { getByTestId } = render(<Test />);
@@ -38,7 +38,7 @@ describe("rulesets", () => {
       apply: { [customAtt]: true },
     });
     const Test = () => {
-      const atts = useRulesets();
+      const atts = useRulesets({});
       return <div data-testid="div" {...atts} />;
     };
     const { getByTestId } = render(<Test />);
@@ -91,7 +91,7 @@ describe("rulesets", () => {
     expect(div.style.getPropertyValue("--ta0")).toBe("green");
   });
 
-  it("handles subselectors", () => {
+  it("handles subselectors", async () => {
     const useRulesets = rulesets({
       color: "blue",
       selectors: {
@@ -99,7 +99,7 @@ describe("rulesets", () => {
       },
     });
     const Test = () => {
-      const atts = useRulesets();
+      const atts = useRulesets({});
       return (
         <div {...atts}>
           <h1 data-testid="h1">Test</h1>
@@ -108,9 +108,11 @@ describe("rulesets", () => {
     };
     const { getByTestId } = render(<Test />);
     const h1 = getByTestId("h1");
-    expect(window.getComputedStyle(h1).getPropertyValue("color")).toEqual(
-      "red"
-    );
+    await waitFor(() => {
+      expect(window.getComputedStyle(h1).getPropertyValue("color")).toEqual(
+        "red"
+      );
+    });
   });
 
   test("can customize shouldForwardProps", () => {

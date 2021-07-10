@@ -4,7 +4,7 @@ export const IS_BROWSER =
 export const DEFAULT_STYLE_TAG_ID = "tonami";
 
 export const options = {
-  shouldForwardProp: (key: string, value: unknown) => {
+  shouldForwardProp(key: string, value: unknown) {
     return key[0] !== "$";
   },
 };

@@ -1,10 +1,12 @@
 import { DEFAULT_STYLE_TAG_ID, IS_BROWSER } from "./lib/constants";
+import { getSheet } from "./lib/getSheet";
 
 const matchSets = /\/\* ~~~(?<id>[\w\d]+)~~~ \*\/\n(?<style>.*)$/gm;
 
 class StyleSheet {
   styles: Record<string, string>;
   tag: null | HTMLStyleElement;
+  lastStyleString: string;
 
   constructor() {
     let styles = {};
@@ -25,14 +27,12 @@ class StyleSheet {
     this.styles = styles;
     this.tag = null;
     this.createTag();
+    this.lastStyleString = this.getStyleString();
   }
 
   setStyle(id: string, CSS: string) {
-    if (!(id in this.styles) || this.styles[id] !== CSS) {
-      this.styles[id] = CSS;
-      // Update styles everytime a style is set
-      this.writeStyles();
-    }
+    this.styles[id] = CSS;
+    this.writeStyles();
   }
 
   removeStyle(id: string) {
@@ -58,6 +58,10 @@ class StyleSheet {
     return null;
   }
 
+  getSheet() {
+    return this.tag ? getSheet(this.tag) : null;
+  }
+
   // Get the style tag
   getTag() {
     return this.tag || this.createTag();
@@ -67,7 +71,7 @@ class StyleSheet {
   getStyleString() {
     let css = [];
     for (let id in this.styles) {
-      css.push(`/* ~~~${id}~~~ */`);
+      css.push("/* ~~~" + id + "~~~ */");
       css.push(this.styles[id]);
     }
     return css.join("\n");
@@ -77,7 +81,14 @@ class StyleSheet {
   writeStyles() {
     let tag = this.getTag();
     if (tag) {
-      tag.innerHTML = this.getStyleString();
+      let newStyleString = this.getStyleString();
+      // Only write to head if string changed
+      if (newStyleString != this.lastStyleString) {
+        this.lastStyleString = newStyleString;
+        requestAnimationFrame(function () {
+          if (tag) tag.innerHTML = newStyleString;
+        });
+      }
     }
   }
 }
