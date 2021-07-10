@@ -1,5 +1,4 @@
 import { DEFAULT_STYLE_TAG_ID, IS_BROWSER } from "./lib/constants";
-import { getSheet } from "./lib/getSheet";
 
 const matchSets = /\/\* ~~~(?<id>[\w\d]+)~~~ \*\/\n(?<style>.*)$/gm;
 
@@ -56,10 +55,6 @@ class StyleSheet {
       }
     }
     return null;
-  }
-
-  getSheet() {
-    return this.tag ? getSheet(this.tag) : null;
   }
 
   // Get the style tag
