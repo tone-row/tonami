@@ -3,8 +3,8 @@ import { options } from "./lib/constants";
 import { getUniqueClassName } from "./lib/getUniqueClassName";
 import { getUniqueId } from "./lib/getUniqueId";
 import { applyToSelector, cssToString, uniqueVarName } from "./helpers";
-import { useStyle } from "./style";
 import { ConditionsMap, Ruleset, VarMap } from "./lib/types";
+import { mainSheet } from "./sheet";
 
 export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
   const elementId = getUniqueId();
@@ -16,6 +16,7 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
   conditions.set({ className: baseClass }, true);
   let varsMap: VarMap = {}; // stores css variabls for runtime processing
 
+  /* This loop adds roughly 10ms to the render time of each part */
   for (const ruleset of rulesets) {
     // first you need to pull off anything that isn't css
     const {
@@ -29,22 +30,21 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
     conditions.set(apply, condition);
 
     // turn your apply method into a selector
-    const rootSelector = `.${baseClass}${applyToSelector(apply)}`;
+    const rootSelector = "." + baseClass + applyToSelector(apply);
 
     // copy style
     let subSelectorCss: string[] = [];
 
-    if (Object.keys(selectors).length) {
-      for (const selector in selectors) {
-        subSelectorCss.push(
-          cssToString(
-            rootSelector,
-            replaceFuncsWithVars(selectors[selector], varsMap),
-            selector
-          )
-        );
-      }
+    for (const selector in selectors) {
+      subSelectorCss.push(
+        cssToString(
+          rootSelector,
+          replaceFuncsWithVars(selectors[selector], varsMap),
+          selector
+        )
+      );
     }
+
     // replace css functions with variables
     const sanitizedCss = replaceFuncsWithVars(style, varsMap);
 
@@ -53,23 +53,24 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
     css = css.concat(subSelectorCss);
   }
 
-  return function (props?: Interface) {
-    useStyle(elementId, css.join(" "));
-    const {
-      className: userClassName = "",
-      style: userStyle = {},
-      ...validProps
-    } = forwardProps(props as any);
-    const {
-      className: tonamiClassName,
-      style: tonamiStyle,
-      ...attributes
-    } = getAtts(conditions, varsMap, props);
+  // Set styles
+  mainSheet.setStyle(elementId, css.join(" "));
+
+  return function (props: Interface) {
+    const user = filterUserAttributes(props);
+    const tonami = getTonamiAttributes(conditions, varsMap, props);
+    const style = user.style
+      ? { ...tonami.style, ...user.style }
+      : tonami.style;
+    const className = user.className
+      ? tonami.className + " " + user.className
+      : tonami.className;
+
     return {
-      ...attributes,
-      ...validProps,
-      style: { ...tonamiStyle, ...(userStyle as object) },
-      className: tonamiClassName + " " + userClassName,
+      ...tonami,
+      ...user,
+      style,
+      className,
     };
   };
 }
@@ -78,7 +79,10 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
  * Filter props with a starting letter
  * https://styled-components.com/docs/api#transient-props
  */
-function forwardProps(props?: Record<string, unknown>) {
+function filterUserAttributes<Interface>(props?: Interface): {
+  style?: {};
+  className?: string;
+} {
   let validProps: Record<string, unknown> = {};
   for (const key in props) {
     if (options.shouldForwardProp(key, props[key]))
@@ -87,25 +91,25 @@ function forwardProps(props?: Record<string, unknown>) {
   return validProps;
 }
 
-function getAtts<Interface>(
+function getTonamiAttributes<Interface>(
   conditions: ConditionsMap<Interface>,
   varsMap: VarMap,
   args: Interface
 ) {
-  const classNames = [];
-  let attributes: any = { style: {} };
+  let attributes: any = { style: {}, className: [] };
   for (let [apply, condition] of conditions) {
     const shouldApply =
       typeof condition === "function" ? condition(args) : condition;
     if (shouldApply) {
       if ("className" in apply) {
-        classNames.push(apply.className);
+        attributes.className.push(apply.className);
       } else {
         attributes = { ...attributes, ...apply };
       }
     }
   }
-  attributes["className"] = classNames.join(" ");
+  attributes.className = attributes.className.join(" ");
+  // Set css custom properties
   for (const key in varsMap) {
     attributes.style[key] = varsMap[key](args);
   }
@@ -121,7 +125,7 @@ export function replaceFuncsWithVars<T>(css: Ruleset<T>, varsMap: VarMap) {
     if (typeof value === "function") {
       const cssVar = uniqueVarName();
       varsMap[cssVar] = value;
-      r[property] = `var(${cssVar})`;
+      r[property] = "var(" + cssVar + ")";
     } else {
       r[property] = value;
     }

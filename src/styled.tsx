@@ -1,22 +1,22 @@
-import React from "react";
-import { ComponentPropsWithRef, ElementType } from "react";
+import React, { useMemo } from "react";
+import { ComponentPropsWithRef, ElementType, memo } from "react";
 import domElements from "./lib/domElements";
 import { rulesets } from "./rulesets";
 import { Ruleset } from "./lib/types";
 
 function styled<C extends ElementType>(baseElement: C) {
   return function styledComponent<I>(...rules: Ruleset<I>[]) {
-    const useRulesets = rulesets<I>(...rules);
-    return <D extends ElementType | undefined>(
+    const getComponentProps = rulesets<I>(...rules);
+    return memo(function C<D extends ElementType | undefined>(
       props: I & { as?: D } & Omit<
           ComponentPropsWithRef<D extends undefined ? C : D>,
           keyof I
         >
-    ) => {
-      const atts = useRulesets(props);
+    ) {
+      /* Accounts for ~15ms per render */
       const Element = props.as ?? baseElement;
-      return <Element {...atts} />;
-    };
+      return <Element {...getComponentProps(props)} />;
+    });
   };
 }
 
