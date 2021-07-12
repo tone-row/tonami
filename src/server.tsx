@@ -1,12 +1,11 @@
 import React from "react";
-import { DEFAULT_STYLE_TAG_ID } from "./lib/constants";
-import { useStyleSheet } from "./sheet";
+import { SSR_STYLE_TAG_ID } from "./lib/constants";
+import { sheet } from "./sheet";
 
 export function ServerStylesheet() {
-  const sheet = useStyleSheet();
   return (
     <style
-      id={DEFAULT_STYLE_TAG_ID}
+      id={SSR_STYLE_TAG_ID}
       dangerouslySetInnerHTML={{ __html: sheet.getStyleString() }}
     />
   );

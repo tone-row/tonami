@@ -1,5 +1,6 @@
-export { default as styled } from "./styled";
-export { rulesets } from "./rulesets";
-export { css, useCss } from "./css";
-export { ServerStylesheet } from "./server";
+export { createGlobalStyle } from "./createGlobalStyle";
+
 export { options } from "./lib/constants";
+export { styled } from "./styled";
+
+export { ServerStylesheet } from "./server";

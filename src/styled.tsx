@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { ComponentPropsWithRef, ElementType, memo } from "react";
 import domElements from "./lib/domElements";
 import { rulesets } from "./rulesets";
@@ -15,7 +15,8 @@ function styled<C extends ElementType>(baseElement: C) {
     ) {
       /* Accounts for ~15ms per render */
       const Element = props.as ?? baseElement;
-      return <Element {...getComponentProps(props)} />;
+      const cProps = getComponentProps(props);
+      return <Element {...cProps} />;
     });
   };
 }
@@ -32,4 +33,4 @@ domElements.forEach((domElement) => {
   enhancedStyled[domElement] = styled(domElement);
 });
 
-export default enhancedStyled;
+export { enhancedStyled as styled };

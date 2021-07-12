@@ -1,7 +1,11 @@
+/**
+ * @jest-environment node
+ */
+
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import styled from "../styled";
+import { styled } from "../styled";
 import { ServerStylesheet } from "../server";
 
 describe("ServerStylesheet", () => {

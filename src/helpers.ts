@@ -1,6 +1,6 @@
 import { Properties } from "csstype";
 import { CSSProperties } from "react";
-import { Selectors, Apply } from "./lib/types";
+import { Apply } from "./lib/types";
 
 /**
  * Converts css object into a string
@@ -23,22 +23,6 @@ export function objectToString(obj: CSSProperties) {
 const camelToKebab = (string: String) => {
   return string.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, "$1-$2").toLowerCase();
 };
-
-/**
- * Converts selectors to a string of styles
- */
-export function selectorsToString(args: Selectors) {
-  let html: string[] = [];
-  for (const selector in args) {
-    html.push(cssToString(selector, args[selector]));
-  }
-  return html.join(" ");
-}
-
-let uniqueCssVariableName = 0;
-export function uniqueVarName() {
-  return "--ta" + uniqueCssVariableName++;
-}
 
 /**
  * Converts {@link Apply} to a selector suffix
