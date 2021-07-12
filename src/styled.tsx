@@ -1,5 +1,4 @@
-import React from "react";
-import { ComponentPropsWithRef, ElementType, memo } from "react";
+import React, { ComponentPropsWithRef, ElementType, memo } from "react";
 import domElements from "./lib/domElements";
 import { rulesets } from "./rulesets";
 import { Ruleset } from "./lib/types";
