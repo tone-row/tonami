@@ -5,3 +5,7 @@ let uniqueClassName = 0;
 export function getUniqueClassName() {
   return "ta" + uniqueClassName++;
 }
+
+export function resetUniqueClassName() {
+  uniqueClassName = 0;
+}

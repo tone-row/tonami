@@ -6,7 +6,11 @@ type PropertiesWithFunction<T> = {
 
 type Vars = Record<string, any>;
 
-export type Selectors = { [selector: string]: Properties & Vars };
+export type Selectors<T> = {
+  [selector: string]: PropertiesWithFunction<T> & Vars;
+};
+
+export type StaticSelectors = Record<string, Properties & Vars>;
 
 /**
  * The apply type represents what attributes should be applied to a component

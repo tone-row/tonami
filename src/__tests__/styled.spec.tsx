@@ -1,9 +1,19 @@
 import React from "react";
-import styled from "../styled";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 
+import { styled } from "../styled";
+import { sheet } from "../sheet";
+import { resetUniqueClassName } from "../lib/getUniqueClassName";
+import { resetUniqueVarName } from "../lib/getUniqueCssVariableName";
+
 describe("styled", () => {
+  afterEach(() => {
+    sheet.reset();
+    resetUniqueClassName();
+    resetUniqueVarName();
+  });
+
   it("creates an element which can be mounted", () => {
     const styledDiv = styled("div");
     expect(typeof styledDiv).toBe("function");
@@ -54,8 +64,8 @@ describe("styled", () => {
     );
     render(<Test />);
     const span = screen.getByTestId("span");
-    expect(window.getComputedStyle(span).getPropertyValue("--ta1")).toEqual(
-      "700"
+    expect(span.getAttribute("style")).toEqual(
+      "--ta0: 700; font-family: sans-serif;"
     );
     expect(span.classList.contains("hello")).toBe(true);
     expect(span.style.fontFamily).toEqual("sans-serif");
@@ -70,5 +80,37 @@ describe("styled", () => {
     });
     render(<BigBlueDiv>Test</BigBlueDiv>);
     expect(screen.getByText("Test").classList.length).toEqual(4);
+  });
+
+  it("styles selectors", async () => {
+    const SelectoStyle = styled.div({
+      selectors: {
+        "& h1 {}": {
+          color: "red",
+        },
+      },
+    });
+    render(
+      <SelectoStyle>
+        <h1>Test!</h1>
+      </SelectoStyle>
+    );
+    expect(sheet.rules).toContain(".ta0.ta1 h1 { color: red; }");
+  });
+
+  it("styles selectors with variable functions", async () => {
+    const SelectoStyle = styled.div<{ $color: string }>({
+      selectors: {
+        "& h1 {}": {
+          color: (props) => props.$color,
+        },
+      },
+    });
+    render(
+      <SelectoStyle $color="green">
+        <h1>Test!</h1>
+      </SelectoStyle>
+    );
+    expect(sheet.rules).toContain(".ta0.ta1 h1 { color: var(--ta0); }");
   });
 });

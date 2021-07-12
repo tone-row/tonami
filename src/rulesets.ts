@@ -1,30 +1,26 @@
 import { Properties } from "csstype";
 import { options } from "./lib/constants";
 import { getUniqueClassName } from "./lib/getUniqueClassName";
-import { getUniqueId } from "./lib/getUniqueId";
-import { applyToSelector, cssToString, uniqueVarName } from "./helpers";
+import { applyToSelector, cssToString } from "./helpers";
+import { uniqueVarName } from "./lib/getUniqueCssVariableName";
 import { ConditionsMap, Ruleset, VarMap } from "./lib/types";
-import { mainSheet } from "./sheet";
+import { sheet } from "./sheet";
 
 export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
-  const elementId = getUniqueId();
   const baseClass = getUniqueClassName();
 
   // Prepare permanent html + classNamesObject
-  let css: string[] = []; // Static CSS
+  let rules: string[] = []; // Static CSS
   let conditions: ConditionsMap<Interface> = new Map();
-  conditions.set({ className: baseClass }, true);
   let varsMap: VarMap = {}; // stores css variabls for runtime processing
 
   /* This loop adds roughly 10ms to the render time of each part */
-  for (const ruleset of rulesets) {
+  for (let i = 0; i < rulesets.length; i++) {
     // first you need to pull off anything that isn't css
-    const {
-      apply = { className: getUniqueClassName() },
-      condition = true,
-      selectors = {},
-      ...style
-    } = ruleset;
+    let { apply, condition, selectors, ...style } = rulesets[i];
+
+    apply = apply ?? { className: getUniqueClassName() };
+    condition = condition ?? true;
 
     // future logic for applying this (class or att)
     conditions.set(apply, condition);
@@ -32,33 +28,28 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
     // turn your apply method into a selector
     const rootSelector = "." + baseClass + applyToSelector(apply);
 
-    // copy style
-    let subSelectorCss: string[] = [];
-
-    for (const selector in selectors) {
-      subSelectorCss.push(
-        cssToString(
-          rootSelector,
-          replaceFuncsWithVars(selectors[selector], varsMap),
-          selector
-        )
-      );
-    }
-
     // replace css functions with variables
     const sanitizedCss = replaceFuncsWithVars(style, varsMap);
 
     // add css
-    css.push(cssToString(rootSelector, sanitizedCss));
-    css = css.concat(subSelectorCss);
+    rules.push(cssToString(rootSelector, sanitizedCss));
+
+    if (selectors) {
+      for (const selector in selectors) {
+        rules.push(
+          cssToString(
+            rootSelector,
+            replaceFuncsWithVars(selectors[selector], varsMap),
+            selector
+          )
+        );
+      }
+    }
   }
 
-  // Set styles
-  mainSheet.setStyle(elementId, css.join(" "));
-
-  return function (props: Interface) {
+  function getComponentProps(props: Interface) {
     const user = filterUserAttributes(props);
-    const tonami = getTonamiAttributes(conditions, varsMap, props);
+    const tonami = getTonamiAttributes(conditions, varsMap, baseClass, props);
     const style = user.style
       ? { ...tonami.style, ...user.style }
       : tonami.style;
@@ -72,7 +63,14 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
       style,
       className,
     };
-  };
+  }
+
+  // Insert Rules
+  const ruleIndexes = sheet.insertRules(rules);
+
+  getComponentProps.ruleIndexes = ruleIndexes;
+
+  return getComponentProps;
 }
 
 /**
@@ -94,9 +92,10 @@ function filterUserAttributes<Interface>(props?: Interface): {
 function getTonamiAttributes<Interface>(
   conditions: ConditionsMap<Interface>,
   varsMap: VarMap,
+  baseClass: string,
   args: Interface
 ) {
-  let attributes: any = { style: {}, className: [] };
+  let attributes: any = { style: {}, className: [baseClass] };
   for (let [apply, condition] of conditions) {
     const shouldApply =
       typeof condition === "function" ? condition(args) : condition;

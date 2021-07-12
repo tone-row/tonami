@@ -1,12 +1,17 @@
 {
   "name": "tonami",
-  "version": "0.1.2",
-  "main": "dist/index.js",
-  "module": "dist/index.es.js",
+  "version": "0.2.0",
+  "source": "src/index.ts",
+  "exports": "./dist/index.modern.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.module.js",
+  "unpkg": "./dist/index.umd.js",
   "files": [
     "dist"
   ],
+  "author": "Rob <rob.gordon@tone-row.com>",
   "repository": {
+    "type": "git",
     "url": "https://github.com/tone-row/tonami"
   },
   "description": "Minimal CSS-in-JS library that promotes CSS best-practices and strongly-typed design systems.",
@@ -21,8 +26,9 @@
     "styling"
   ],
   "scripts": {
-    "build": "rollup -c",
-    "dev": "yarn build --watch",
+    "build": "yarn clean && microbundle --jsx React.createElement",
+    "dev": "microbundle --jsx React.createElement watch",
+    "clean": "rimraf dist",
     "test": "yarn jest",
     "semantic-release": "semantic-release",
     "benchmark": "node scripts/benchmark.js"
@@ -40,9 +46,11 @@
     "@typescript-eslint/parser": "^4.25.0",
     "benchmark": "^2.1.4",
     "jest": "<27",
+    "microbundle": "^0.13.3",
     "prettier": "^2.3.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "rimraf": "^3.0.2",
     "rollup": "^2.50.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "rollup-plugin-postcss": "^4.0.0",
@@ -57,5 +65,9 @@
   },
   "dependencies": {
     "csstype": "^3.0.8"
+  },
+  "collective": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/tone-row"
   }
 }

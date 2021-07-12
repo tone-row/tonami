@@ -43,7 +43,7 @@ function App() {
 }
 ```
 
-[View example on Stackblitz](https://stackblitz.com/edit/react-ts-bkgefl?file=index.tsx)
+[View example on Stackblitz](https://stackblitz.com/edit/tonami-example-1?file=index.tsx)
 
 #### Polymorphism
 
@@ -89,6 +89,7 @@ function App() {
   );
 }
 ```
+
 [View example on Stackblitz](https://stackblitz.com/edit/react-ts-cv7pqy?file=index.tsx)
 
 When rendered, this uses CSS Custom Properties to apply the color dynamically rather than dyanmically update the CSS at runtime.
@@ -132,13 +133,13 @@ interface Props {
 
 const Text = styled.div<Props>(
   {
-    color: ({ $color }) => $color
+    color: ({ $color }) => $color,
   },
   {
     // <-- Passing a second argument/ruleset
-    fontFamily: 'cursive',
-    textShadow: '2px 2px 10px',
-    condition: props => props.$isWacky // <-- when to apply this class
+    fontFamily: "cursive",
+    textShadow: "2px 2px 10px",
+    condition: (props) => props.$isWacky, // <-- when to apply this class
   }
 );
 
@@ -168,15 +169,15 @@ interface Props {
 }
 
 const Text = styled.div<Props>({
-  fontSize: ({ $size }) => $size * 6 + 'px',
+  fontSize: ({ $size }) => $size * 6 + "px",
   selectors: {
-    '&:hover {}': {
-      color: 'blue'
+    "&:hover {}": {
+      color: "blue",
     },
-    '@media(min-width: 600px) { & {} }': {
-      fontSize: ({ $size }) => $size * 8 + 'px'
-    }
-  }
+    "@media(min-width: 600px) { & {} }": {
+      fontSize: ({ $size }) => $size * 8 + "px",
+    },
+  },
 });
 
 function App() {
@@ -187,7 +188,6 @@ function App() {
 [View Example on Stackblitz](https://stackblitz.com/edit/react-ts-dcsepx?file=index.tsx)
 
 In this example we defined a different color on hover, and also a larger font size (still based on our props) on screens wider than 600px.
-
 
 <!-- prettier-ignore-start -->
 [version-badge]: https://img.shields.io/npm/v/tonami?style=flat-square

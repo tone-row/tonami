@@ -1,93 +1,84 @@
-import { DEFAULT_STYLE_TAG_ID, IS_BROWSER } from "./lib/constants";
-
-const matchSets = /\/\* ~~~(?<id>[\w\d]+)~~~ \*\/\n(?<style>.*)$/gm;
+import {
+  DEFAULT_STYLE_TAG_ID,
+  IS_BROWSER,
+  SSR_STYLE_TAG_ID,
+} from "./lib/constants";
+import { getSheet } from "./lib/getSheet";
 
 class StyleSheet {
-  styles: Record<string, string>;
+  rules: string[];
   tag: null | HTMLStyleElement;
-  lastStyleString: string;
+  sheet: null | CSSStyleSheet;
 
   constructor() {
-    let styles = {};
-
-    // On the client we initialize style using the server-rendered tag
-    if (IS_BROWSER) {
-      const style = document.getElementById(DEFAULT_STYLE_TAG_ID)?.innerHTML;
-      if (style) {
-        let match;
-        while ((match = matchSets.exec(style)) !== null) {
-          if (match.groups) {
-            const { id, style } = match.groups;
-            styles[id] = style;
-          }
-        }
-      }
-    }
-    this.styles = styles;
-    this.tag = null;
-    this.createTag();
-    this.lastStyleString = this.getStyleString();
-  }
-
-  setStyle(id: string, CSS: string) {
-    this.styles[id] = CSS;
-    this.writeStyles();
-  }
-
-  removeStyle(id: string) {
-    delete this.styles[id];
-    this.writeStyles();
+    this.rules = [];
+    this.tag = this.findOrCreateTag();
+    this.sheet = this.getSheet();
   }
 
   // Make style tag
-  createTag() {
+  findOrCreateTag() {
+    if (this.tag) return this.tag;
+
     if (IS_BROWSER) {
       const documentTag = document.getElementById(DEFAULT_STYLE_TAG_ID);
-      if (!this.tag && !documentTag) {
-        const style = document.createElement("style");
-        style.setAttribute("id", DEFAULT_STYLE_TAG_ID);
-        style.setAttribute("data-testid", DEFAULT_STYLE_TAG_ID);
-        document.head.appendChild(style);
-        this.tag = style;
-        return style;
-      } else if (!this.tag && documentTag) {
-        this.tag = documentTag as HTMLStyleElement;
-      }
+
+      if (documentTag) return documentTag as HTMLStyleElement;
+
+      const tag = document.createElement("style");
+      tag.setAttribute("id", DEFAULT_STYLE_TAG_ID);
+      tag.setAttribute("data-testid", DEFAULT_STYLE_TAG_ID);
+      document.head.appendChild(tag);
+
+      // Add rules from SSR
+      this.insertRules(this.rules);
+
+      // Delete SSR Tag
+      document.getElementById(SSR_STYLE_TAG_ID)?.remove();
+
+      return tag;
     }
     return null;
   }
 
-  // Get the style tag
-  getTag() {
-    return this.tag || this.createTag();
+  getSheet() {
+    return this.tag ? getSheet(this.tag) : null;
   }
 
-  // Return string of styles
-  getStyleString() {
-    let css = [];
-    for (let id in this.styles) {
-      css.push("/* ~~~" + id + "~~~ */");
-      css.push(this.styles[id]);
-    }
-    return css.join("\n");
-  }
+  insertRules(rules: string[]) {
+    const ruleIndexes: number[] = [];
 
-  // Write styles to tag
-  writeStyles() {
-    let tag = this.getTag();
-    if (tag) {
-      let newStyleString = this.getStyleString();
-      // Only write to head if string changed
-      if (newStyleString != this.lastStyleString) {
-        this.lastStyleString = newStyleString;
-        requestAnimationFrame(function () {
-          if (tag) tag.innerHTML = newStyleString;
-        });
+    let i = 0;
+    while (rules.length) {
+      if (!this.rules[i]) {
+        this.rules[i] = rules.shift() as string;
+        this.sheet && this.sheet.insertRule(this.rules[i], i);
+        ruleIndexes.push(i);
       }
+      i++;
+    }
+
+    return ruleIndexes;
+  }
+
+  removeRules(indexes: number[]) {
+    for (let index of indexes) {
+      this.rules[index] = "";
+      // removeRules only called on the client so we know sheet exists
+      (this.sheet as CSSStyleSheet).deleteRule(index);
     }
   }
+
+  getStyleString() {
+    return this.rules.join("\n");
+  }
+
+  reset() {
+    this.rules = [];
+    if (this.tag) this.tag.remove();
+    this.tag = null;
+    this.tag = this.findOrCreateTag();
+    this.sheet = this.getSheet();
+  }
 }
-export const mainSheet = new StyleSheet();
-export function useStyleSheet() {
-  return mainSheet;
-}
+export const sheet = new StyleSheet();

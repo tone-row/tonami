@@ -116,8 +116,7 @@ describe("rulesets", () => {
   });
 
   test("can customize shouldForwardProps", () => {
-    options.shouldForwardProp = (key: string, value: unknown) =>
-      !(key === "plz_filter_me");
+    options.shouldForwardProp = (key: string) => !(key === "plz_filter_me");
     const useRulesets = rulesets<{
       plz_filter_me: string;
       dont_filter_me: string;
