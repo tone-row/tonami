@@ -1,7 +1,6 @@
 {
   "name": "tonami",
   "version": "0.2.0",
-  "type": "module",
   "source": "src/index.ts",
   "exports": "./dist/index.modern.js",
   "main": "./dist/index.cjs",
@@ -66,5 +65,9 @@
   },
   "dependencies": {
     "csstype": "^3.0.8"
+  },
+  "collective": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/tone-row"
   }
 }
