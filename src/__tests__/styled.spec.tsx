@@ -72,14 +72,15 @@ describe("styled", () => {
   });
 
   it("should compose other styled's", () => {
-    const BlueDiv = styled.div({
-      color: "blue",
+    const BlueDiv = styled.div<{ $color: string }>({
+      color: ({ $color }) => $color,
     });
     const BigBlueDiv = styled(BlueDiv)({
       fontSize: "100px",
     });
-    render(<BigBlueDiv>Test</BigBlueDiv>);
+    render(<BigBlueDiv $color="orange">Test</BigBlueDiv>);
     expect(screen.getByText("Test").classList.length).toEqual(4);
+    expect(screen.getByText("Test").getAttribute("style")).toContain("orange");
   });
 
   it("styles selectors", async () => {

@@ -1,15 +1,11 @@
 {
   "name": "tonami",
-  "version": "0.2.1",
-  "source": "src/index.ts",
-  "exports": "./dist/index.modern.js",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.module.js",
-  "unpkg": "./dist/index.umd.js",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "version": "0.3.0",
+  "source": "src/tonami.ts",
+  "main": "./dist/tonami.js",
+  "module": "./dist/tonami.module.js",
+  "unpkg": "./dist/tonami.umd.js",
+  "types": "./dist/tonami.d.ts",
   "author": "Rob <rob.gordon@tone-row.com>",
   "repository": {
     "type": "git",
@@ -27,8 +23,9 @@
     "styling"
   ],
   "scripts": {
-    "build": "yarn clean && microbundle --jsx React.createElement",
-    "dev": "microbundle --jsx React.createElement watch",
+    "bundle": "microbundle --jsx React.createElement",
+    "dev": "yarn run bundle watch --no-compress",
+    "build": "yarn clean && yarn bundle",
     "clean": "rimraf dist",
     "test": "yarn jest",
     "semantic-release": "semantic-release",
@@ -52,17 +49,13 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "rimraf": "^3.0.2",
-    "rollup": "^2.50.0",
-    "rollup-plugin-peer-deps-external": "^2.2.4",
-    "rollup-plugin-postcss": "^4.0.0",
-    "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-typescript2": "^0.30.0",
     "ts-jest": "^26.5.6",
+    "ts-node": "^10.1.0",
     "typescript": "^4.2.4"
   },
   "peerDependencies": {
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "react": "^16.8.0 || ^17",
+    "react-dom": "^16.8.0 || ^17"
   },
   "dependencies": {
     "csstype": "^3.0.8"

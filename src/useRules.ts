@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { sheet } from "./sheet";
 
 function arraysEqual(array1: string[], array2: string[]) {
@@ -15,4 +15,11 @@ export function useRules(rules: string[]) {
     ruleIds.current = sheet.insertRules(rules);
     prevRules.current = rules;
   }
+  useEffect(() => {
+    return () => {
+      if (ruleIds.current.length) {
+        sheet.removeRules(ruleIds.current);
+      }
+    };
+  }, []);
 }
