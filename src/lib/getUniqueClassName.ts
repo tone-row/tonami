@@ -10,7 +10,7 @@ export function getUniqueClassName(str: string) {
 Lifted from goober. Use it instead. It's better.
 https://github.com/cristianbote/goober/blob/master/src/core/to-hash.js
 */
-export let hashFromString = (str: string) => {
+let hashFromString = (str: string) => {
   let i = 0,
     out = 37;
   while (i < str.length) out = (97 * out + str.charCodeAt(i++)) >>> 0;
