@@ -4,12 +4,10 @@ import { render, screen } from "@testing-library/react";
 
 import { styled } from "../styled";
 import { sheet } from "../sheet";
-import { resetUniqueVarName } from "../lib/getUniqueCssVariableName";
 
 describe("styled", () => {
   afterEach(() => {
     sheet.reset();
-    resetUniqueVarName();
   });
 
   it("creates an element which can be mounted", () => {
