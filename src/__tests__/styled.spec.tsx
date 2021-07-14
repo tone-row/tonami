@@ -63,7 +63,7 @@ describe("styled", () => {
     render(<Test />);
     const span = screen.getByTestId("span");
     expect(span.getAttribute("style")).toEqual(
-      "--ta0: 700; font-family: sans-serif;"
+      "--TAc84292d5-0: 700; font-family: sans-serif;"
     );
     expect(span.classList.contains("hello")).toBe(true);
     expect(span.style.fontFamily).toEqual("sans-serif");
@@ -111,7 +111,7 @@ describe("styled", () => {
       </SelectoStyle>
     );
     expect(sheet.rules).toContain(
-      ".TAf4af03ec.TA57efd h1 { color: var(--ta0); }"
+      ".TAf4af03ec.TA57efd h1 { color: var(--TAf4af03ec-0); }"
     );
   });
 });

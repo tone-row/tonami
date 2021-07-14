@@ -2,9 +2,11 @@ import { Properties } from "csstype";
 import { options } from "./lib/constants";
 import { getUniqueClassName } from "./lib/getUniqueClassName";
 import { applyToSelector, cssToString } from "./helpers";
-import { uniqueVarName } from "./lib/getUniqueCssVariableName";
+
 import { ConditionsMap, Ruleset, VarMap } from "./lib/types";
 import { sheet } from "./sheet";
+
+type VMAP<T> = Map<string, (props: T) => string>;
 
 export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
   const baseClass = getUniqueClassName(JSON.stringify(rulesets));
@@ -12,15 +14,15 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
   // Prepare permanent html + classNamesObject
   let rules: string[] = []; // Static CSS
   let conditions: ConditionsMap<Interface> = new Map();
-  let varsMap: VarMap = {}; // stores css variabls for runtime processing
+  let vMap2: VMAP<Interface> = new Map(); // stores css variabls for runtime processing
 
   /* This loop adds roughly 10ms to the render time of each part */
   for (let i = 0; i < rulesets.length; i++) {
     // first you need to pull off anything that isn't css
     let { apply, condition, selectors, ...style } = rulesets[i];
 
-    apply = apply ?? { className: getUniqueClassName(JSON.stringify(style)) };
     condition = condition ?? true;
+    apply = apply ?? { className: getUniqueClassName(JSON.stringify(style)) };
 
     // future logic for applying this (class or att)
     conditions.set(apply, condition);
@@ -29,7 +31,7 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
     const rootSelector = "." + baseClass + applyToSelector(apply);
 
     // replace css functions with variables
-    const sanitizedCss = replaceFuncsWithVars(style, varsMap);
+    const sanitizedCss = replaceFuncsWithVars(style, vMap2, baseClass);
 
     // add css
     rules.push(cssToString(rootSelector, sanitizedCss));
@@ -39,7 +41,7 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
         rules.push(
           cssToString(
             rootSelector,
-            replaceFuncsWithVars(selectors[selector], varsMap),
+            replaceFuncsWithVars(selectors[selector], vMap2, baseClass),
             selector
           )
         );
@@ -49,7 +51,7 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
 
   function getComponentProps(props: Interface) {
     const user = filterUserAttributes(props);
-    const tonami = getTonamiAttributes(conditions, varsMap, baseClass, props);
+    const tonami = getTonamiAttributes(conditions, vMap2, baseClass, props);
     const style = user.style
       ? { ...tonami.style, ...user.style }
       : tonami.style;
@@ -91,7 +93,7 @@ function filterUserAttributes<Interface>(props?: Interface): {
 
 function getTonamiAttributes<Interface>(
   conditions: ConditionsMap<Interface>,
-  varsMap: VarMap,
+  varsMap: VMAP<Interface>,
   baseClass: string,
   args: Interface
 ) {
@@ -109,21 +111,25 @@ function getTonamiAttributes<Interface>(
   }
   attributes.className = attributes.className.join(" ");
   // Set css custom properties
-  for (const key in varsMap) {
-    attributes.style[key] = varsMap[key](args);
+  for (let [cssvar, fn] of varsMap) {
+    attributes.style[cssvar] = fn(args);
   }
   return attributes;
 }
 
-export function replaceFuncsWithVars<T>(css: Ruleset<T>, varsMap: VarMap) {
+export function replaceFuncsWithVars<T>(
+  css: Ruleset<T>,
+  varsMap: VMAP<T>,
+  baseClass: string
+) {
   let r: Properties = {};
   if (!css) return r;
 
   for (const property in css) {
     let value = css[property];
     if (typeof value === "function") {
-      const cssVar = uniqueVarName();
-      varsMap[cssVar] = value;
+      const cssVar = "--" + baseClass + "-" + varsMap.size;
+      varsMap.set(cssVar, value);
       r[property] = "var(" + cssVar + ")";
     } else {
       r[property] = value;
