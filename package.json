@@ -1,6 +1,6 @@
 {
   "name": "tonami",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "source": "src/tonami.ts",
   "main": "./dist/tonami.js",
   "module": "./dist/tonami.module.js",
@@ -36,8 +36,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^19.0.0",
-    "@rollup/plugin-node-resolve": "^13.0.0",
     "@testing-library/jest-dom": "^5.12.0",
     "@testing-library/react": "^11.2.7",
     "@types/jest": "^26.0.23",

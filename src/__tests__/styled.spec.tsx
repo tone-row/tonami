@@ -4,14 +4,10 @@ import { render, screen } from "@testing-library/react";
 
 import { styled } from "../styled";
 import { sheet } from "../sheet";
-import { resetUniqueClassName } from "../lib/getUniqueClassName";
-import { resetUniqueVarName } from "../lib/getUniqueCssVariableName";
 
 describe("styled", () => {
   afterEach(() => {
     sheet.reset();
-    resetUniqueClassName();
-    resetUniqueVarName();
   });
 
   it("creates an element which can be mounted", () => {
@@ -65,7 +61,7 @@ describe("styled", () => {
     render(<Test />);
     const span = screen.getByTestId("span");
     expect(span.getAttribute("style")).toEqual(
-      "--ta0: 700; font-family: sans-serif;"
+      "--TAc84292d5-0: 700; font-family: sans-serif;"
     );
     expect(span.classList.contains("hello")).toBe(true);
     expect(span.style.fontFamily).toEqual("sans-serif");
@@ -96,7 +92,7 @@ describe("styled", () => {
         <h1>Test!</h1>
       </SelectoStyle>
     );
-    expect(sheet.rules).toContain(".ta0.ta1 h1 { color: red; }");
+    expect(sheet.rules).toContain(".TA1788df28.TA57efd h1 { color: red; }");
   });
 
   it("styles selectors with variable functions", async () => {
@@ -112,6 +108,8 @@ describe("styled", () => {
         <h1>Test!</h1>
       </SelectoStyle>
     );
-    expect(sheet.rules).toContain(".ta0.ta1 h1 { color: var(--ta0); }");
+    expect(sheet.rules).toContain(
+      ".TAf4af03ec.TA57efd h1 { color: var(--TAf4af03ec-0); }"
+    );
   });
 });

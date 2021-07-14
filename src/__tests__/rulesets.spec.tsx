@@ -13,7 +13,7 @@ describe("rulesets", () => {
     };
     const { getByTestId } = render(<Test />);
     const div = getByTestId("div");
-    expect(div.classList.contains("ta0")).toBe(true);
+    expect(div.classList).toContain("TA572bd");
   });
 
   test("can apply using a custom class", () => {
@@ -79,16 +79,16 @@ describe("rulesets", () => {
   });
 
   it("replaces css functions with variables", () => {
-    const useRulesets = rulesets<{ c: string }>({
-      color: ({ c }) => c,
+    const useRulesets = rulesets<{ $c: string }>({
+      color: ({ $c }) => $c,
     });
-    const Test = ({ c }: { c: string }) => {
-      const atts = useRulesets({ c });
+    const Test = ({ $c }: { $c: string }) => {
+      const atts = useRulesets({ $c });
       return <div data-testid="div" {...atts} />;
     };
-    const { getByTestId } = render(<Test c="green" />);
+    const { getByTestId } = render(<Test $c="green" />);
     const div = getByTestId("div");
-    expect(div.style.getPropertyValue("--ta0")).toBe("green");
+    expect(div.style.getPropertyValue("--TAc84292d5-0")).toBe("green");
   });
 
   it("handles subselectors", async () => {
@@ -136,10 +136,18 @@ describe("rulesets", () => {
     expect(div.getAttribute("plz_filter_me")).toEqual(null);
     expect(div.getAttribute("dont_filter_me")).not.toEqual(null);
   });
+
+  it.skip("should use base class if first ruleset missing condition", () => {
+    const getAtts = rulesets({
+      color: "blue",
+    });
+    const { className } = getAtts({});
+    expect(className).toEqual("dlfkj");
+  });
 });
 
 describe("replaceFuncsWithVars", () => {
   it("should return an empty object if passed one", () => {
-    expect(replaceFuncsWithVars(false as any, {})).toEqual({});
+    expect(replaceFuncsWithVars(false as any, new Map(), "test")).toEqual({});
   });
 });
