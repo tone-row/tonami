@@ -3,6 +3,10 @@ import { createGlobalStyle } from "../createGlobalStyle";
 import { render } from "@testing-library/react";
 import { sheet } from "../sheet";
 
+beforeEach(() => {
+  sheet.reset();
+});
+
 describe("createGlobalStyle", () => {
   it("returns something to be rendered", () => {
     const Global = createGlobalStyle({});
@@ -34,6 +38,19 @@ describe("createGlobalStyle", () => {
     expect(sheet.rules).toContain("html { color: red; }");
     rerender(<Global $color="blue" />);
     expect(sheet.rules).toContain("html { color: blue; }");
+    expect(sheet.rules).not.toContain("html { color: red; }");
+  });
+
+  it("should remove styles on unmount", () => {
+    const Global = createGlobalStyle({
+      html: {
+        color: "red",
+      },
+    });
+    expect(sheet.rules).not.toContain("html { color: red; }");
+    const { rerender } = render(<Global />);
+    expect(sheet.rules).toContain("html { color: red; }");
+    rerender(<></>);
     expect(sheet.rules).not.toContain("html { color: red; }");
   });
 });
