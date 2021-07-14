@@ -7,7 +7,7 @@ import { ConditionsMap, Ruleset, VarMap } from "./lib/types";
 import { sheet } from "./sheet";
 
 export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
-  const baseClass = getUniqueClassName();
+  const baseClass = getUniqueClassName(JSON.stringify(rulesets));
 
   // Prepare permanent html + classNamesObject
   let rules: string[] = []; // Static CSS
@@ -19,7 +19,7 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
     // first you need to pull off anything that isn't css
     let { apply, condition, selectors, ...style } = rulesets[i];
 
-    apply = apply ?? { className: getUniqueClassName() };
+    apply = apply ?? { className: getUniqueClassName(JSON.stringify(style)) };
     condition = condition ?? true;
 
     // future logic for applying this (class or att)

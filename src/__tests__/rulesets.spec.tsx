@@ -13,7 +13,7 @@ describe("rulesets", () => {
     };
     const { getByTestId } = render(<Test />);
     const div = getByTestId("div");
-    expect(div.classList.contains("ta0")).toBe(true);
+    expect(div.classList).toContain("TA572bd");
   });
 
   test("can apply using a custom class", () => {

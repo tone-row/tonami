@@ -14,7 +14,9 @@ describe("stylesheet", () => {
     styled.div({
       color: "green",
     });
-    expect(sheet.getStyleString()).toEqual(".ta0.ta1 { color: green; }");
+    expect(sheet.getStyleString()).toEqual(
+      ".TAcf6141c7.TA212d7b4f { color: green; }"
+    );
   });
 
   it("should reset in the server", () => {
