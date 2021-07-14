@@ -1,6 +1,6 @@
 {
   "name": "tonami",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "source": "src/tonami.ts",
   "main": "./dist/tonami.js",
   "module": "./dist/tonami.module.js",
@@ -11,6 +11,9 @@
     "type": "git",
     "url": "https://github.com/tone-row/tonami"
   },
+  "files": [
+    "dist"
+  ],
   "description": "Minimal CSS-in-JS library that promotes CSS best-practices and strongly-typed design systems.",
   "keywords": [
     "react",
