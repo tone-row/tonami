@@ -2,6 +2,9 @@ import { cssToString } from "./helpers";
 import { Selectors, StaticSelectors } from "./lib/types";
 import { useRules } from "./useRules";
 
+/**
+ * Resolve function values *without* css custom properties
+ */
 function resolveFnValues<I>(
   decl: Selectors<I>[string],
   props: I
