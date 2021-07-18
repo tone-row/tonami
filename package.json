@@ -32,7 +32,8 @@
     "clean": "rimraf dist",
     "test": "yarn jest",
     "semantic-release": "semantic-release",
-    "benchmark": "node scripts/benchmark.js"
+    "benchmark": "node scripts/benchmark.js",
+    "prepublish": "yarn build"
   },
   "license": "MIT",
   "devDependencies": {
