@@ -88,7 +88,7 @@ describe("rulesets", () => {
     };
     const { getByTestId } = render(<Test $c="green" />);
     const div = getByTestId("div");
-    expect(div.style.getPropertyValue("--TAc84292d5-0")).toBe("green");
+    expect(div.style.getPropertyValue("--TAe95be848-0")).toBe("green");
   });
 
   it("handles subselectors", async () => {

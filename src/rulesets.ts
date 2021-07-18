@@ -9,7 +9,7 @@ import { sheet } from "./sheet";
 type VMAP<T> = Map<string, (props: T) => string>;
 
 export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
-  const baseClass = getUniqueClassName(JSON.stringify(rulesets));
+  const baseClass = getUniqueClassName(stringify(rulesets));
 
   // Prepare permanent html + classNamesObject
   let rules: string[] = []; // Static CSS
@@ -22,7 +22,7 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
     let { apply, condition, selectors, ...style } = rulesets[i];
 
     condition = condition ?? true;
-    apply = apply ?? { className: getUniqueClassName(JSON.stringify(style)) };
+    apply = apply ?? { className: getUniqueClassName(stringify(style)) };
 
     // future logic for applying this (class or att)
     conditions.set(apply, condition);
@@ -137,4 +137,14 @@ export function replaceFuncsWithVars<T>(
   }
 
   return r;
+}
+
+function stringify(o: object) {
+  return JSON.stringify(o, function (_key, value) {
+    if (typeof value === "function") {
+      return value.toString();
+    } else {
+      return value;
+    }
+  });
 }

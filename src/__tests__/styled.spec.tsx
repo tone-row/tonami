@@ -61,7 +61,7 @@ describe("styled", () => {
     render(<Test />);
     const span = screen.getByTestId("span");
     expect(span.getAttribute("style")).toEqual(
-      "--TAc84292d5-0: 700; font-family: sans-serif;"
+      "--TA567b4b32-0: 700; font-family: sans-serif;"
     );
     expect(span.classList.contains("hello")).toBe(true);
     expect(span.style.fontFamily).toEqual("sans-serif");
@@ -109,7 +109,29 @@ describe("styled", () => {
       </SelectoStyle>
     );
     expect(sheet.rules).toContain(
-      ".TAf4af03ec.TA57efd h1 { color: var(--TAf4af03ec-0); }"
+      ".TA9c805232.TA57efd h1 { color: var(--TA9c805232-0); }"
     );
+  });
+
+  it("different conditions should have different classes", () => {
+    const Test = styled.div<{ $color?: string; $fontFamily?: string }>(
+      {
+        color: ({ $color }) => $color,
+        condition: ({ $color }) => $color != null,
+      },
+      {
+        fontFamily: ({ $fontFamily }) => $fontFamily,
+        condition: ({ $fontFamily }) => $fontFamily != null,
+      }
+    );
+    render(
+      <Test>
+        <Test $color="blue">one</Test>
+        <Test $fontFamily="cursive">two</Test>
+      </Test>
+    );
+    const one = screen.getByText(/one/);
+    const two = screen.getByText(/two/);
+    expect(one.classList).not.toEqual(two.classList);
   });
 });
