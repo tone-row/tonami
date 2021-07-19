@@ -15,7 +15,7 @@ describe("stylesheet", () => {
       color: "green",
     });
     expect(sheet.getStyleString()).toEqual(
-      ".TAcf6141c7.TA212d7b4f { color: green; }"
+      ".TAa69a7a5.TA1f79d95 { color: green; }"
     );
   });
 

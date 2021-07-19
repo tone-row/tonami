@@ -139,12 +139,13 @@ export function replaceFuncsWithVars<T>(
   return r;
 }
 
-function stringify(o: object) {
-  return JSON.stringify(o, function (_key, value) {
-    if (typeof value === "function") {
-      return value.toString();
-    } else {
-      return value;
-    }
-  });
+function stringify(data: object) {
+  let out = "";
+
+  for (let p in data) {
+    let val = data[p];
+    out += p + (typeof val == "object" ? stringify(data[p]) : data[p]);
+  }
+
+  return out;
 }

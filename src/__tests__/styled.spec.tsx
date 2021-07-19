@@ -61,7 +61,7 @@ describe("styled", () => {
     render(<Test />);
     const span = screen.getByTestId("span");
     expect(span.getAttribute("style")).toEqual(
-      "--TA567b4b32-0: 700; font-family: sans-serif;"
+      "--TAc91a82f0-0: 700; font-family: sans-serif;"
     );
     expect(span.classList.contains("hello")).toBe(true);
     expect(span.style.fontFamily).toEqual("sans-serif");
@@ -92,7 +92,7 @@ describe("styled", () => {
         <h1>Test!</h1>
       </SelectoStyle>
     );
-    expect(sheet.rules).toContain(".TA1788df28.TA57efd h1 { color: red; }");
+    expect(sheet.rules).toContain(".TA1a183a5a.TA25 h1 { color: red; }");
   });
 
   it("styles selectors with variable functions", async () => {
@@ -109,7 +109,7 @@ describe("styled", () => {
       </SelectoStyle>
     );
     expect(sheet.rules).toContain(
-      ".TA9c805232.TA57efd h1 { color: var(--TA9c805232-0); }"
+      ".TA936e7ea4.TA25 h1 { color: var(--TA936e7ea4-0); }"
     );
   });
 
@@ -136,9 +136,9 @@ describe("styled", () => {
   });
 
   it("should receive base class no matter what", () => {
-    const Test = styled.div();
+    const Test = styled.div({});
     render(<Test as="main">test</Test>);
     const t = screen.getByText(/test/);
-    expect(t.classList).toContain("TA572bd");
+    expect(t.classList).toHaveLength(2);
   });
 });

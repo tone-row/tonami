@@ -37,7 +37,7 @@ describe("createTokens", () => {
       "html { --primary: blue; --secondary: red; }"
     );
     expect(sheet.rules).toContain(
-      ".TA3f70c1ae.TAc22dd76 { color: var(--primary); }"
+      ".TA4190736c.TAf46b735c { color: var(--primary); }"
     );
   });
 
