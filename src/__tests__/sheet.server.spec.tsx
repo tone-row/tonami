@@ -14,8 +14,8 @@ describe("stylesheet", () => {
     styled.div({
       color: "green",
     });
-    expect(sheet.getStyleString()).toEqual(
-      ".TAcf6141c7.TA212d7b4f { color: green; }"
+    expect(sheet.getStyleString()).toMatchInlineSnapshot(
+      `".TAcf6141c7.TA212d7b4f { color: green; }"`
     );
   });
 

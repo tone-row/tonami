@@ -13,7 +13,11 @@ describe("rulesets", () => {
     };
     const { getByTestId } = render(<Test />);
     const div = getByTestId("div");
-    expect(div.classList).toContain("TA572bd");
+    expect(div.classList).toMatchInlineSnapshot(`
+      DOMTokenList {
+        "0": "TA572bd",
+      }
+    `);
   });
 
   test("can apply using a custom class", () => {
@@ -88,7 +92,9 @@ describe("rulesets", () => {
     };
     const { getByTestId } = render(<Test $c="green" />);
     const div = getByTestId("div");
-    expect(div.style.getPropertyValue("--TAc84292d5-0")).toBe("green");
+    expect(div.getAttribute("style")).toMatchInlineSnapshot(
+      `"--TAc84292d5-0: green;"`
+    );
   });
 
   it("handles subselectors", async () => {
