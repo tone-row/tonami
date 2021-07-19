@@ -3,13 +3,13 @@ import { options } from "./lib/constants";
 import { getUniqueClassName } from "./lib/getUniqueClassName";
 import { applyToSelector, cssToString } from "./helpers";
 
-import { ConditionsMap, Ruleset, VarMap } from "./lib/types";
+import { ConditionsMap, Ruleset } from "./lib/types";
 import { sheet } from "./sheet";
 
 type VMAP<T> = Map<string, (props: T) => string>;
 
 export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
-  const baseClass = getUniqueClassName(stringify(rulesets));
+  const baseClass = getUniqueClassName(JSON.stringify(rulesets));
 
   // Prepare permanent html + classNamesObject
   let rules: string[] = []; // Static CSS
@@ -21,17 +21,19 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
     // first you need to pull off anything that isn't css
     let { apply, condition, selectors, ...style } = rulesets[i];
 
+    // replace css functions with variables
+    const sanitizedCss = replaceFuncsWithVars(style, vMap2, baseClass);
+
     condition = condition ?? true;
-    apply = apply ?? { className: getUniqueClassName(stringify(style)) };
+    apply = apply ?? {
+      className: getUniqueClassName(JSON.stringify(sanitizedCss)),
+    };
 
     // future logic for applying this (class or att)
     conditions.set(apply, condition);
 
     // turn your apply method into a selector
     const rootSelector = "." + baseClass + applyToSelector(apply);
-
-    // replace css functions with variables
-    const sanitizedCss = replaceFuncsWithVars(style, vMap2, baseClass);
 
     // add css
     rules.push(cssToString(rootSelector, sanitizedCss));
@@ -137,15 +139,4 @@ export function replaceFuncsWithVars<T>(
   }
 
   return r;
-}
-
-function stringify(data: object) {
-  let out = "";
-
-  for (let p in data) {
-    let val = data[p];
-    out += p + (typeof val == "object" ? stringify(data[p]) : data[p]);
-  }
-
-  return out;
 }

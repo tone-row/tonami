@@ -60,8 +60,8 @@ describe("styled", () => {
     );
     render(<Test />);
     const span = screen.getByTestId("span");
-    expect(span.getAttribute("style")).toEqual(
-      "--TAc91a82f0-0: 700; font-family: sans-serif;"
+    expect(span.getAttribute("style")).toMatchInlineSnapshot(
+      `"--TAc84292d5-0: 700; font-family: sans-serif;"`
     );
     expect(span.classList.contains("hello")).toBe(true);
     expect(span.style.fontFamily).toEqual("sans-serif");
@@ -92,7 +92,9 @@ describe("styled", () => {
         <h1>Test!</h1>
       </SelectoStyle>
     );
-    expect(sheet.rules).toContain(".TA1a183a5a.TA25 h1 { color: red; }");
+    expect(sheet.rules[1]).toMatchInlineSnapshot(
+      `".TA1788df28.TA57efd h1 { color: red; }"`
+    );
   });
 
   it("styles selectors with variable functions", async () => {
@@ -108,8 +110,8 @@ describe("styled", () => {
         <h1>Test!</h1>
       </SelectoStyle>
     );
-    expect(sheet.rules).toContain(
-      ".TA936e7ea4.TA25 h1 { color: var(--TA936e7ea4-0); }"
+    expect(sheet.rules[1]).toMatchInlineSnapshot(
+      `".TAf4af03ec.TA57efd h1 { color: var(--TAf4af03ec-0); }"`
     );
   });
 

@@ -36,9 +36,12 @@ describe("createTokens", () => {
     expect(sheet.rules).toContain(
       "html { --primary: blue; --secondary: red; }"
     );
-    expect(sheet.rules).toContain(
-      ".TA4190736c.TAf46b735c { color: var(--primary); }"
-    );
+    expect(sheet.rules).toMatchInlineSnapshot(`
+      Array [
+        ".TA3f70c1ae.TAc22dd76 { color: var(--primary); }",
+        "html { --primary: blue; --secondary: red; }",
+      ]
+    `);
   });
 
   test("can create dynamic token function", () => {
