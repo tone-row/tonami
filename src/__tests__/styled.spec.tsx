@@ -134,4 +134,11 @@ describe("styled", () => {
     const two = screen.getByText(/two/);
     expect(one.classList).not.toEqual(two.classList);
   });
+
+  it("should receive base class no matter what", () => {
+    const Test = styled.div();
+    render(<Test as="main">test</Test>);
+    const t = screen.getByText(/test/);
+    expect(t.classList).toContain("TA572bd");
+  });
 });
