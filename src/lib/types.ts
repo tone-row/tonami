@@ -24,8 +24,6 @@ export type Ruleset<T> = PropertiesWithFunction<T> &
     selectors?: { [k: string]: PropertiesWithFunction<T> };
   };
 
-export type VarMap = Record<string, (args: any) => string>;
-
 type Condition<Interface> = boolean | ((props: Interface) => boolean);
 export type ConditionsMap<Interface> = Map<
   Record<string, string>,
