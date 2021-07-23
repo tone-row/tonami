@@ -45,11 +45,20 @@ class StyleSheet {
     return this.tag ? getSheet(this.tag) : null;
   }
 
-  insertRules(rules: string[]) {
+  insertRules(rules: string[], isStatic = false) {
     const ruleIndexes: number[] = [];
 
     let i = 0;
     while (rules.length) {
+      if (isStatic) {
+        const exists = this.rules.indexOf(rules[0]);
+        if (exists > -1) {
+          rules.shift();
+          ruleIndexes.push(exists);
+          continue;
+        }
+      }
+
       if (!this.rules[i]) {
         this.rules[i] = rules.shift() as string;
         this.sheet && this.sheet.insertRule(this.rules[i], i);

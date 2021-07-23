@@ -70,7 +70,7 @@ export function rulesets<Interface>(...rulesets: Ruleset<Interface>[]) {
   }
 
   // Insert Rules
-  const ruleIndexes = sheet.insertRules(rules);
+  const ruleIndexes = sheet.insertRules(rules, true);
 
   getComponentProps.ruleIndexes = ruleIndexes;
 
