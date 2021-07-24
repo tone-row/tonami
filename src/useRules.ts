@@ -12,7 +12,7 @@ export function useRules(rules: string[]) {
     if (ruleIds.current.length) {
       sheet.removeRules(ruleIds.current);
     }
-    ruleIds.current = sheet.insertRules(rules);
+    ruleIds.current = sheet.insertDynamicRules(rules);
     prevRules.current = rules;
   }
   useEffect(() => {

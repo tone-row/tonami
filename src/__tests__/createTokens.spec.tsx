@@ -23,6 +23,25 @@ describe("createTokens", () => {
     );
   });
 
+  test("should work with numbers too", () => {
+    const theme = createTokens({
+      deeply: { nested: { object: { thing: 999 } } },
+    });
+    expect(theme.deeply.nested.object.thing).toEqual(
+      "var(--deeply-nested-object-thing)"
+    );
+    const { Tokens } = theme;
+    render(<Tokens />);
+    expect(sheet.rules).toContain(
+      `html { --deeply-nested-object-thing: 999; }`
+    );
+  });
+
+  test("should ignore things that aren't strings,numbers,or objects", () => {
+    const theme = createTokens({ fn: () => {} });
+    expect(Object.keys(theme)).toHaveLength(0);
+  });
+
   test("returns a Global element for automatic use", () => {
     const theme = createTokens({ primary: "blue", secondary: "red" });
     const { Tokens } = theme;

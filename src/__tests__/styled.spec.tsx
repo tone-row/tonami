@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useReducer, useState } from "react";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 
@@ -142,5 +142,24 @@ describe("styled", () => {
     render(<Test as="main">test</Test>);
     const t = screen.getByText(/test/);
     expect(t.classList).toHaveLength(2);
+  });
+
+  test("make sure styles only added once", () => {
+    const Test = styled.div({ color: "blue" });
+    const Test2 = styled.div({ color: "blue" });
+    const ToggleTest = ({ x }: { x: boolean }) => {
+      return x ? (
+        <>
+          <Test />
+          <Test2 />
+        </>
+      ) : null;
+    };
+    render(<ToggleTest x={true} />);
+    expect(sheet.rules).toHaveLength(1);
+    render(<ToggleTest x={false} />);
+    expect(sheet.rules).toHaveLength(1);
+    render(<ToggleTest x={true} />);
+    expect(sheet.rules).toHaveLength(1);
   });
 });
