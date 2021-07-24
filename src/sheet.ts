@@ -9,11 +9,15 @@ class StyleSheet {
   rules: string[];
   tag: null | HTMLStyleElement;
   sheet: null | CSSStyleSheet;
+  // A static reference to moving rules
+  // Used for global style unmount
+  dynamicIndexes: number[];
 
   constructor() {
     this.rules = [];
     this.tag = this.findOrCreateTag();
     this.sheet = this.getSheet();
+    this.dynamicIndexes = [];
   }
 
   // Make style tag
@@ -30,8 +34,8 @@ class StyleSheet {
       tag.setAttribute("data-testid", DEFAULT_STYLE_TAG_ID);
       document.head.appendChild(tag);
 
-      // Add rules from SSR
-      this.insertRules(this.rules);
+      // Not necessary because components will rehydrate? :\
+      // this.insertRules(this.rules);
 
       // Delete SSR Tag
       document.getElementById(SSR_STYLE_TAG_ID)?.remove();
@@ -45,36 +49,49 @@ class StyleSheet {
     return this.tag ? getSheet(this.tag) : null;
   }
 
-  insertRules(rules: string[], isStatic = false) {
-    const ruleIndexes: number[] = [];
+  insertStaticRules(rules: string[]) {
+    let index: number;
+    for (let rule of rules) {
+      if (this.rules.indexOf(rule) > -1) continue;
 
-    let i = 0;
-    while (rules.length) {
-      if (isStatic) {
-        const exists = this.rules.indexOf(rules[0]);
-        if (exists > -1) {
-          rules.shift();
-          ruleIndexes.push(exists);
-          continue;
-        }
-      }
-
-      if (!this.rules[i]) {
-        this.rules[i] = rules.shift() as string;
-        this.sheet && this.sheet.insertRule(this.rules[i], i);
-        ruleIndexes.push(i);
-      }
-      i++;
+      index = this.rules.length;
+      this.rules[index] = rule;
+      this.sheet && this.sheet.insertRule(rule, index);
     }
-
-    return ruleIndexes;
   }
 
-  removeRules(indexes: number[]) {
-    for (let index of indexes) {
-      this.rules[index] = "";
+  insertDynamicRules(rules: string[]) {
+    const curDynamicIndexes: number[] = [];
+    let index: number;
+    let dynamicIndex: number;
+    for (let rule of rules) {
+      index = this.rules.length;
+      dynamicIndex = this.dynamicIndexes.length;
+      this.rules[index] = rule;
+      this.sheet && this.sheet.insertRule(this.rules[index], index);
+      this.dynamicIndexes[dynamicIndex] = index;
+      curDynamicIndexes.push(dynamicIndex);
+    }
+
+    // Always return rules in reverse order so that we don't end up with indexes out of range
+    return curDynamicIndexes.sort((a, b) => b - a);
+  }
+
+  // Called with static index - NOT rule index
+  removeRules(dynamicIndexes: number[]) {
+    let ruleIndex: number;
+    for (let dynamicIndex of dynamicIndexes) {
+      ruleIndex = this.dynamicIndexes[dynamicIndex];
+      this.rules.splice(ruleIndex, 1);
       // removeRules only called on the client so we know sheet exists
-      (this.sheet as CSSStyleSheet).deleteRule(index);
+      (this.sheet as CSSStyleSheet).deleteRule(ruleIndex);
+      this.dynamicIndexes[dynamicIndex] = -1; // no longer used
+
+      // decrement higher indexes
+      for (let i = 0; i < this.dynamicIndexes.length; i++) {
+        let value = this.dynamicIndexes[i];
+        if (value > ruleIndex) this.dynamicIndexes[i] = value - 1;
+      }
     }
   }
 
@@ -84,6 +101,7 @@ class StyleSheet {
 
   reset() {
     this.rules = [];
+    this.dynamicIndexes = [];
     if (this.tag) this.tag.remove();
     this.tag = null;
     this.tag = this.findOrCreateTag();

@@ -10,13 +10,13 @@ describe("stylesheet", () => {
     jest.resetModules();
   });
 
-  it("should return rule indexes when inserting rules", () => {
+  it("should return rule indexes when inserting dynamic rules", () => {
     const { sheet } = require("../sheet");
-    const ruleIds = sheet.insertRules([
+    const ruleIds = sheet.insertDynamicRules([
       "body { background-color: red; }",
       "html { color: red; }",
     ]);
-    expect(ruleIds).toEqual([0, 1]);
+    expect(ruleIds).toEqual([1, 0]);
   });
 
   it("should get tag if tag present", () => {
@@ -48,5 +48,24 @@ describe("stylesheet", () => {
     expect(
       document.querySelector("[data-testid='ssr']")
     ).not.toBeInTheDocument();
+  });
+
+  it("should keep vaid references to rules", () => {
+    const { sheet } = require("../sheet");
+    const red = sheet.insertDynamicRules(["a { color: red; }"]);
+    const green = sheet.insertDynamicRules(["a { color: green; }"]);
+    const blue = sheet.insertDynamicRules(["a { color: blue; }"]);
+    expect(sheet.rules).toContain("a { color: red; }");
+    expect(sheet.rules).toContain("a { color: green; }");
+    expect(sheet.rules).toContain("a { color: blue; }");
+    sheet.removeRules(green);
+    expect(sheet.rules).toContain("a { color: red; }");
+    expect(sheet.rules).not.toContain("a { color: green; }");
+    expect(sheet.rules).toContain("a { color: blue; }");
+    sheet.removeRules(blue);
+    expect(sheet.rules).toContain("a { color: red; }");
+    expect(sheet.rules).not.toContain("a { color: blue; }");
+    sheet.removeRules(red);
+    expect(sheet.rules).toHaveLength(0);
   });
 });
