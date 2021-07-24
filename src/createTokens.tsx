@@ -17,11 +17,11 @@ export function createTokens<V extends object>(vars: V) {
     for (const key in obj) {
       let curVal = obj[key],
         curKeys = keys.concat(key);
-      if (typeof curVal === "string") {
+      if (["string", "number"].includes(typeof curVal)) {
         let varName = `--${curKeys.join("-")}`;
         map[varName] = curVal;
         returnObj[key] = `var(${varName})`;
-      } else {
+      } else if (typeof curVal === "object") {
         returnObj[key] = {};
         setVars(curVal, returnObj[key], curKeys);
       }
