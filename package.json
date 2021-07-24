@@ -1,6 +1,6 @@
 {
   "name": "tonami",
-  "version": "0.4.1-beta.1",
+  "version": "0.4.1-beta.2",
   "source": "src/tonami.ts",
   "main": "./dist/tonami.js",
   "module": "./dist/tonami.module.js",
