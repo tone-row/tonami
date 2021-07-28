@@ -68,4 +68,13 @@ describe("stylesheet", () => {
     sheet.removeRules(red);
     expect(sheet.rules).toHaveLength(0);
   });
+
+  it("should console.log when delete rule fails", () => {
+    const { sheet } = require("../sheet");
+    spyOn(console, "log");
+    sheet.dynamicIndexes = [10];
+    sheet.removeRules([0]);
+    expect(console.log).toHaveBeenCalledTimes(1);
+    expect(console.log).toHaveBeenCalledWith("INDEX_SIZE_ERR");
+  });
 });
