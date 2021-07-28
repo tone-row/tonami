@@ -94,7 +94,7 @@ class StyleSheet {
           if (value > ruleIndex) this.dynamicIndexes[i] = value - 1;
         }
       } catch (e) {
-        console.log(e);
+        console.log(e.message);
       }
     }
   }
