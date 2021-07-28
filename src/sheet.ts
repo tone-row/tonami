@@ -83,14 +83,18 @@ class StyleSheet {
     for (let dynamicIndex of dynamicIndexes) {
       ruleIndex = this.dynamicIndexes[dynamicIndex];
       this.rules.splice(ruleIndex, 1);
-      // removeRules only called on the client so we know sheet exists
-      (this.sheet as CSSStyleSheet).deleteRule(ruleIndex);
-      this.dynamicIndexes[dynamicIndex] = -1; // no longer used
+      try {
+        // removeRules only called on the client so we know sheet exists
+        (this.sheet as CSSStyleSheet).deleteRule(ruleIndex);
+        this.dynamicIndexes[dynamicIndex] = -1; // no longer used
 
-      // decrement higher indexes
-      for (let i = 0; i < this.dynamicIndexes.length; i++) {
-        let value = this.dynamicIndexes[i];
-        if (value > ruleIndex) this.dynamicIndexes[i] = value - 1;
+        // decrement higher indexes
+        for (let i = 0; i < this.dynamicIndexes.length; i++) {
+          let value = this.dynamicIndexes[i];
+          if (value > ruleIndex) this.dynamicIndexes[i] = value - 1;
+        }
+      } catch (e) {
+        console.log(e);
       }
     }
   }
