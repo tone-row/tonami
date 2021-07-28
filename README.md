@@ -2,7 +2,7 @@
 
 # Tonami
 
-CSS-in-JS library with a familir API that uses CSS custom properties under the hood
+CSS-in-JS library with a familiar API that uses CSS custom properties under the hood
 
 [![version][version-badge]][package]
 ![downloads per month][downloads]
