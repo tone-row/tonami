@@ -67,12 +67,12 @@ Please file an issue for bugs or unexpected behavior.
 
 Please file an issue to suggest new features. Vote on feature requests by adding a 👍.
 
-# Publishing while < 1.0.0
+## Publishing while < 1.0.0
 
-If on main, run `npm version 0.5.5`, otherwise run `npm version 0.5.5-beta.1`
-**Don't forget** to run `yarn build`
-If on main, run `git push && git push origin v0.5.5`, otherwise just push to your branch
-If on main, run `npm publish`, otherwise run `npm publish --tag beta`
+- If on main, run `npm version 0.5.5`, otherwise run `npm version 0.5.5-beta.1`
+- **Don't forget** to run `yarn build`
+- If on main, run `git push && git push origin v0.5.5`, otherwise just push to your branch
+- If on main, run `npm publish`, otherwise run `npm publish --tag beta`
 
 ## License
 
