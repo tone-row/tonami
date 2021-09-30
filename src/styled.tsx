@@ -1,4 +1,10 @@
-import React, { ComponentPropsWithRef, ElementType, memo } from "react";
+import React, {
+  ComponentPropsWithRef,
+  ElementType,
+  forwardRef,
+  memo,
+  MutableRefObject,
+} from "react";
 import domElements from "./lib/domElements";
 import { rulesets } from "./rulesets";
 import { Ruleset } from "./lib/types";
@@ -22,8 +28,9 @@ function styled<C extends ElementType>(baseElement: C) {
           baseElement.getComponentProps.concat(getRulesets)
         : [getRulesets];
 
-    const C = memo(function C<D extends ElementType | undefined>(
-      props: ComponentProps<I, D, C>
+    const fRC = forwardRef(function C<D extends ElementType | undefined>(
+      props: ComponentProps<I, D, C>,
+      ref: any
     ) {
       /* Accounts for ~15ms per render */
       const Element = props.as ?? baseElement;
@@ -32,8 +39,10 @@ function styled<C extends ElementType>(baseElement: C) {
       ).reduce((_props, fn) => {
         return fn(_props as any);
       }, props);
-      return <Element {...(cProps as any)} />;
+      return <Element {...(cProps as any)} ref={ref} />;
     });
+
+    const C = memo(fRC);
 
     Object.assign(C, {
       isStyledComponent: true,
