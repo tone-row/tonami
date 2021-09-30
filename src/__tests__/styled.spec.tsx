@@ -164,7 +164,7 @@ describe("styled", () => {
   });
 });
 
-test.only("it accepts a ref", () => {
+test("it accepts a ref", () => {
   const Test = styled.div({ color: "blue" });
   let ref: MutableRefObject<null | HTMLDivElement> = { current: null };
   const RenderTest = () => {

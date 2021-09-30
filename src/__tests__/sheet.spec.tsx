@@ -77,4 +77,10 @@ describe("stylesheet", () => {
     expect(console.log).toHaveBeenCalledTimes(1);
     expect(console.log).toHaveBeenCalledWith("INDEX_SIZE_ERR");
   });
+
+  it("should continue if rule exists", () => {
+    const { sheet } = require("../sheet");
+    sheet.insertStaticRules(["html { color: red; }", "html { color: red; }"]);
+    expect(sheet.rules).toHaveLength(1);
+  });
 });
