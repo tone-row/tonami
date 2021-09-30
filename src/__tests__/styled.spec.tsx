@@ -1,4 +1,4 @@
-import React, { useReducer, useState } from "react";
+import React, { MutableRefObject, useRef } from "react";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 
@@ -162,4 +162,21 @@ describe("styled", () => {
     render(<ToggleTest x={true} />);
     expect(sheet.rules).toHaveLength(1);
   });
+});
+
+test.only("it accepts a ref", () => {
+  const Test = styled.div({ color: "blue" });
+  let ref: MutableRefObject<null | HTMLDivElement> = { current: null };
+  const RenderTest = () => {
+    ref = useRef(null);
+    return (
+      <Test ref={ref} data-testid="my-element">
+        Something
+      </Test>
+    );
+  };
+  render(<RenderTest />);
+  const el = screen.getByTestId("my-element");
+  expect(el.textContent).toEqual("Something");
+  expect(ref.current).toEqual(el);
 });
